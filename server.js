@@ -40,6 +40,7 @@ const start = async () => {
         //Request handlers right here
         app.post('/createMoat', handler.createMoat)
         app.post('/raw', handler.query)
+        app.post('/createTable', handler.createTable)
         /*app.post('/storeFile', handler.storeFile)
         app.post('/storePhoto', handler.storePhoto)
         app.post(`/transaction`, handler.transaction)*/

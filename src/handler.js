@@ -77,7 +77,14 @@ const handler = () => {
 
         async createTable (req, res) {
             //Will receive the table name as well as schema
-            
+            const data = req.body
+            //Check API key
+            if (data.apiKey != global.database_map.get(data.moat)) {
+                res.end('Invalid API Key')
+            }
+
+            const tableNames = Object.keys(data.schema)
+            console.log(tableNames)
         }
 
 
