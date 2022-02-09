@@ -64,6 +64,13 @@ const handler = () => {
             res.end()
         }
 
+
+        async createTable (req, res) {
+            //Will receive the table name as well as schema
+            
+        }
+
+
         async query (req, res) {
             /*
 
