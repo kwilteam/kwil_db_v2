@@ -7,10 +7,12 @@ const app = Express();
 const cron = require('node-cron');
 //const { shoveBundles } = require('./src/bundler/bundleHandlers');
 //const { syncNode } = require('./src/bundler/syncFuncs');
-const { bundleInit } = require('./src/bundles/bundleInit');
+const { bundleInit } = require('./src/bundling/bundleInit');
 const handlerFunc = require('./src/handler.js')
 const handler = handlerFunc.handler()
 const {pool} = require('./database/pool.js')
+const {generateAPIKey} = require('./src/utils/generateAPIKey');
+const { decryptKey } = require('./src/utils/encryption');
 let server = require('http').createServer();
 
 function shoveBundles() {}
@@ -56,27 +58,27 @@ const start = async () => {
             console.log(e)
         }
 
-        //Creating a map for all databases
-
-        global.database_map = new Map()
-        let userAuth = await pool.query(`SELECT * from admin.schemas;`)
-        userAuth = userAuth.rows
-        console.log(userAuth)
-        userAuth.forEach(user => {
-            //Map the moat name to the credentials
-            global.database_map.set(user.moat_name, {user: user.username, password: user.moat_password})
-        })
-
-        console.log(global.database_map)
-
         //Create admin schema
 
         await pool.query(`CREATE SCHEMA IF NOT EXISTS admin;`)
         await pool.query(`CREATE TABLE IF NOT EXISTS admin.schemas(
             moat_name varchar(128) PRIMARY KEY,
-            username varchar(128) NOT NULL,
-            moat_password varchar(256) NOT NULL
+            owner_address varchar(42) NOT NULL,
+            api_key varchar(88) NOT NULL,
+            encrypted_key varchar(88) NOT NULL
         );`)
+
+        //Creating a map for all databases
+
+        global.database_map = new Map()
+        let userAuth = await pool.query(`SELECT moat_name, api_key from admin.schemas;`)
+        userAuth = userAuth.rows
+        userAuth.forEach(user => {
+            //Map the moat name to the credentials
+            global.database_map.set(user.moat_name, decryptKey(user.api_key))
+        })
+
+        console.log(global.database_map)
 
         // Syncs data with server.
 

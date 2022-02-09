@@ -1,9 +1,10 @@
 const {pool} = require('../database/pool.js')
 const { hyphenToSnake, snakeToHyphen } = require('./utils/utils.js')
-const {writeToBundleCache} = require('./bundles/bundleFuncs.js')
+const {writeToBundleCache} = require('./bundling/bundleFuncs.js')
 const { Parser } = require('node-sql-parser');
 const parser = new Parser();
-const { storePhotos } = require('./filesystem/fileWriter.js')
+const { storePhotos } = require('./filesystem/fileWriter.js');
+const { encryptKey } = require('./utils/encryption.js');
 
 const handler = () => {
     class Handler {
@@ -32,11 +33,11 @@ const handler = () => {
             */
 
             //First make sure it is snake case
-            data.moat = hyphenToSnake(data.moat)
+            try {
 
+            data.moat = hyphenToSnake(data.moat)
             let result = await pool.query(`SELECT schema_name FROM information_schema.schemata WHERE schema_name LIKE '${data.moat}';`)
             result = result.rows
-            console.log(result)
 
             //If the schema doesn't exist, result will be [].  If it does, result will be [schema_name: data.data.moat]
 
@@ -51,16 +52,23 @@ const handler = () => {
                 await pool.query(`CREATE SCHEMA IF NOT EXISTS ${data.moat};`)
 
                 //Now lets store in the admin schema the credentials
-
-                await pool.query(`INSERT INTO admin.schemas(moat_name, username, moat_password) VALUES ('${data.moat}', '${data.user}', '${data.password}')`)
+                const encryptedKey = encryptKey(data.key)
+                console.log(encryptedKey)
+                await pool.query(`INSERT INTO admin.schemas(moat_name, owner_address, api_key, encrypted_key) VALUES ('${data.moat}', '${data.address}', '${encryptedKey}', '${data.encryptedKey}')`)
 
                 //Update the credentials map
-                global.database_map.set(data.moat, {user: data.user, password: data.password})
+                global.database_map.set(data.moat, encryptedKey)
 
                 await res.send({creation: true,
                 reason: `Success in creating moat!`
             })
             }
+        } catch(e) {
+            console.log(e)
+            res.send({creation: false,
+                reason: e.toString()
+            })
+        }
             res.end()
         }
 
