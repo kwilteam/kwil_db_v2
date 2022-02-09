@@ -83,8 +83,23 @@ const handler = () => {
                 res.end('Invalid API Key')
             }
 
-            const tableNames = Object.keys(data.schema)
-            console.log(tableNames)
+            const columnNames = Object.keys(data.schema)
+            console.log(columnNames)
+
+            let sql = `CREATE TABLE ${data.name}(`
+
+            for (let i = 0; i<columnNames.length; i++) {
+                sql += ` ${columnNames[i]} ${data.schema[columnNames[i]]}`
+
+                if (i != columnNames.length-1) {
+                    sql +=','
+                }
+            }
+
+            sql += ')'
+
+            console.log(sql)
+            await pool.query(sql)
         }
 
 
