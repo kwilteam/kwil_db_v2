@@ -13,6 +13,7 @@ const handler = handlerFunc.handler()
 const {pool} = require('./database/pool.js')
 const {generateAPIKey} = require('./src/utils/generateAPIKey');
 const { decryptKey } = require('./src/utils/encryption');
+const cors = require('cors')
 let server = require('http').createServer();
 
 function shoveBundles() {}
@@ -31,6 +32,10 @@ const start = async () => {
             cluster.fork();
         }
         app.use(bodyParser.json({ limit: '10mb' }));
+
+        if (process.env.NODE_ENV == 'development') {
+            app.use(cors())
+        }
 
         //Request handlers right here
         app.post('/createMoat', handler.createMoat)

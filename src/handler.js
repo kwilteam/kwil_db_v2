@@ -59,9 +59,11 @@ const handler = () => {
                 //Update the credentials map
                 global.database_map.set(data.moat, encryptedKey)
 
-                await res.send({creation: true,
-                reason: `Success in creating moat!`
-            })
+                await res.send(
+                    {creation: true,
+                    reason: `Success in creating moat!`
+                    }
+                )
             }
         } catch(e) {
             console.log(e)
