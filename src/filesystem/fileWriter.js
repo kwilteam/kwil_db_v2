@@ -16,7 +16,6 @@ const write2File = async (_path, _content) => {
         for (let i = 0; i< directs.length-1; i++) {
             subPath = subPath + directs[i] + '/'
         }
-        console.log(subPath)
         fsJ.dir(subPath)
     }
 

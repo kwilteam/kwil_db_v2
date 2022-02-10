@@ -1,4 +1,4 @@
-const {pool} = require('../database/pool.js')
+const {pool, Pool, credentials} = require('../database/pool.js')
 const { hyphenToSnake, snakeToHyphen } = require('./utils/utils.js')
 const {writeToBundleCache} = require('./bundling/bundleFuncs.js')
 const { Parser } = require('node-sql-parser');
@@ -27,82 +27,72 @@ const handler = () => {
             Data formatted like:
                 data: {
                     user: 'kwil',
-                    password: 'password',
                     moat: 'kwil'
                 }
             */
 
-            //First make sure it is snake case
             try {
 
+            //First make sure it is snake case
             data.moat = hyphenToSnake(data.moat)
-            let result = await pool.query(`SELECT schema_name FROM information_schema.schemata WHERE schema_name LIKE '${data.moat}';`)
+
+            const admin_pool = global.database_map.get('admin')
+
+            let result = await admin_pool.pool.query(`SELECT datname FROM pg_database WHERE datname LIKE '${data.moat}';`)
             result = result.rows
 
-            //If the schema doesn't exist, result will be [].  If it does, result will be [schema_name: data.data.moat]
+            
 
-            if (result.length > 0) {
+            //If the schema doesn't exist, result will be [].  If it does, result will be [schema_name: data.data.moat]
+            
+            if (data.key.length != 32) {
+                //Putting this here to ensure the key isn't a sql injection since, given its position, it could be possible
+                res.send(`API key must have a length of 32`)
+            }
+            else if (result.length > 0) {
                 //If the schema exists already
-                await res.send({creation: false,
-                reason: `A moat by this name already exists on this node, or this moat name is restricted.`
-            })
+                await res.send({
+                    creation: false,
+                    reason: `A moat by this name already exists on this node, or this moat name is restricted.`
+                })
             } else {
                 //If the schema does not exist
 
-                await pool.query(`CREATE SCHEMA IF NOT EXISTS ${data.moat};`)
+                await pool.query(`CREATE DATABASE ${data.moat};`)
+                await pool.query(`REVOKE ALL ON DATABASE ${data.moat} FROM PUBLIC;`)
+                await pool.query(`CREATE ROLE ${data.moat} WITH PASSWORD '${data.key}'; ALTER ROLE "${data.moat}" WITH LOGIN; GRANT ALL PRIVILEGES ON DATABASE ${data.moat} TO ${data.moat};`)
 
                 //Now lets store in the admin schema the credentials
                 const encryptedKey = encryptKey(data.key)
-                console.log(encryptedKey)
-                await pool.query(`INSERT INTO admin.schemas(moat_name, owner_address, api_key, encrypted_key) VALUES ('${data.moat}', '${data.address}', '${encryptedKey}', '${data.encryptedKey}')`)
+                await admin_pool.pool.query(`INSERT INTO moats(moat_name, owner_address, api_key, encrypted_key) VALUES ('${data.moat}', '${data.address}', '${encryptedKey}', '${data.encryptedKey}')`)
 
                 //Update the credentials map
-                global.database_map.set(data.moat, encryptedKey)
+
+                let _credentials = JSON.parse(JSON.stringify(credentials)) //Want to copy it
+                _credentials.database = data.moat
+                _credentials.user = data.moat
+                _credentials.password = data.key
+                const newPool = new Pool(_credentials)
+                global.database_map.set(data.moat, {key: encryptedKey, pool: newPool})
 
                 await res.send(
-                    {creation: true,
-                    reason: `Success in creating moat!`
+                    {
+                        creation: true,
+                        reason: `Success in creating moat!`
                     }
                 )
             }
         } catch(e) {
             console.log(e)
-            res.send({creation: false,
-                reason: e.toString()
-            })
+            res.send(
+                {
+                    creation: false,
+                    reason: e.toString()
+                }
+            )
         }
             res.end()
         }
-
-
-        async createTable (req, res) {
-            //Will receive the table name as well as schema
-            const data = req.body
-            //Check API key
-
-            if (data.apiKey != global.database_map.get(data.moat)) {
-                res.end('Invalid API Key')
-            }
-
-            const columnNames = Object.keys(data.schema)
-            console.log(columnNames)
-
-            let sql = `CREATE TABLE ${data.name}(`
-
-            for (let i = 0; i<columnNames.length; i++) {
-                sql += ` ${columnNames[i]} ${data.schema[columnNames[i]]}`
-
-                if (i != columnNames.length-1) {
-                    sql +=','
-                }
-            }
-
-            sql += ')'
-
-            console.log(sql)
-            await pool.query(sql)
-        }
-
 
         async query (req, res) {
             /*
@@ -117,65 +107,26 @@ const handler = () => {
             data.moat = hyphenToSnake(data.moat)
 
             const storedCredentials = global.database_map.get(data.moat)
-            if (data.user == storedCredentials.user && data.password == storedCredentials.password) {
+            if (data.apiKey == storedCredentials.key) {
                 //Credentials are valid
 
                 try {
+                    //Do the business logic here
+                    
+                    const dbPool = global.database_map.get(data.moat)
+                    const queryResult = await dbPool.pool.query(data.query)
 
-                    //We need to ensure they are not accessing a schema other than the moat specified
+                    if (data.store) {
+                        //Write to bundle cache
 
-                    //We will parse the sql statement and analyze the schema
-
-                    const ast = parser.astify(data.query)
-
-                    /*
-                    ast is in format: 
-                    [{
-                        with: null,
-                        type: 'select',
-                        from:[{db: 'testschema', table: 'testtable', as: null}]
-                    },
-                    {
-                        with: null,
-                        type: 'select',
-                        from:[{db: 'testschema2', table: 'testtable', as: null}]
-                    }
-                    ]
-                    */
-
-                    let validSchema = true
-
-                    //Checking for each ast for each schema if it is the same as specified.
-                    //How confident am I that an edge case exists?  Fairly
-                    console.log(data.query)
-                    console.log(parser.columnList(data.query))
-
-                    ast.forEach(schema => {
-                        schema.from.forEach(innerSchema => {
-                            if (innerSchema.db != data.moat) {
-                                validSchema = false
-                            }
-                        })
-                    })
-
-                    if (validSchema) {
-                        //At this point the user has thoroughly proven their credentials
-                        const result = await pool.query(req.body.query)
-                        await res.send(result.rows)
-
-                        if (req.body.store == true) {
-                            //If the query was succesful and storing is on
-                            const writeData = {
-                                query: data.query,
-                                timestamp: new Date
-                            }
-        
-                            req.body.moat = snakeToHyphen(req.body.moat) //Convert back
-                            writeToBundleCache(req, writeData)
-
-                            //Distribute to peers as well here, set req.body.store to false though
+                        const writeData = {
+                            query: data.query
                         }
+                        writeToBundleCache(req, writeData)
                     }
+
+                    res.send(queryResult)
+
                 } catch(e) {
                     console.log(e)
                     await res.status(400).send(e.toString())
@@ -193,6 +144,10 @@ const handler = () => {
             console.log(e)
             res.end(`There was a database error`)
         }
+        }
+
+        async storeFile() {
+            
         }
     }
     return new Handler()

@@ -29,4 +29,4 @@ pool.on('error', (err, client) => {
 // This function is used in server.js.
 
 
-module.exports = { pool, client };
+module.exports = { pool, credentials, Pool };
