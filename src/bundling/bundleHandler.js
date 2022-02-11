@@ -1,7 +1,7 @@
 const feeKey = require('../../key.js').key;
 require(`dotenv`).config();
 const {v4} = require('uuid');
-const knex = require('../../database/db.js');
+const {pool} = require(`../../database/pool.js`)
 const Arweave = require('arweave');
 const colors = require('colors');
 const utils = require('./bundleFuncs.js');
@@ -82,10 +82,7 @@ const finalizeBundle = async () => {
 
         //Write to finalized bundles
         await utils.write2File(`finalizedBundles/${unique_id}`, finalBundle);
-        await knex('pending_bundles').insert({
-            bundle_id: unique_id,
-            moats: moats
-        })
+        await pool.query(`INSERT INTO pending_bundles (bundle_id, moats) VALUES ('${unique_id}', ARRAY ${moats})`)
     } else {
         console.log('Bundle was empty')
     }
@@ -120,6 +117,7 @@ const scanPendingBundles = async () => {
             console.log(`${files[i]} was pending and expired.  Resumbitting...`);
             const txid = await sendBundleToArweave(`pendingBundles/${files[i]}`);
                 // Adds bundle to registry.
+                await pool.query(`INSERT INTO bundles (bundle_id, synced, height, moat) VALUES ('${txid}',${true},${1},'${process.env.DATA_MOAT}')`)
                 await knex('bundles').insert({
                     bundle_id: txid,
                     synced: true,
