@@ -1,5 +1,5 @@
 const bodyParser = require('body-parser');
-const colors = require('colors');
+//const colors = require('colors');
 require(`dotenv`).config();
 const numCPUs = require('os').cpus().length;
 const cluster = require('cluster');
@@ -40,6 +40,7 @@ const start = async () => {
         //Request handlers right here
         app.post('/createMoat', handler.createMoat)
         app.post('/raw', handler.query)
+        app.post('/storePhoto', handler.storePhoto)
         /*app.post('/storeFile', handler.storeFile)
         app.post('/storePhoto', handler.storePhoto)
         app.post(`/transaction`, handler.transaction)*/
