@@ -46,6 +46,10 @@ const start = async () => {
         app.get('/raw', handler.query)
         //app.use(Express.static('public', { fallthrough: false }));
 
+        //Now we create the master pool
+        credentials.database = 'admin'
+        const admin_pool = new Pool(credentials)
+        
         //Create a bundle table
         await pool.query(`CREATE TABLE IF NOT EXISTS bundles(
             bundle_id varchar(43) PRIMARY KEY,
@@ -63,11 +67,20 @@ const start = async () => {
 
 
         //Init bundles
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS cached_bundle(
+            id SERIAL PRIMARY KEY,
+            post_data TEXT
+        )`)
+
         try {
             await bundleInit()
         } catch(e) {
             console.log(e)
         }
+
+        //Set the bundle partition:
+        global.bundle_partition = true
 
         //Create admin schema
 
@@ -77,10 +90,6 @@ const start = async () => {
         } catch(e) {
             console.log(`Admin already exists`)
         }
-
-        //Now we create the master pool
-        credentials.database = 'admin'
-        const admin_pool = new Pool(credentials)
 
         await admin_pool.query(`CREATE TABLE IF NOT EXISTS moats(
             moat_name varchar(128) PRIMARY KEY,

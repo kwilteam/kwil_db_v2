@@ -1,5 +1,3 @@
-
-
 /*
 This file contains instructions for managing bundles in the database.  It will function as follows:
 
@@ -16,9 +14,3 @@ This will then be submitted to Arweave and written to the file system at the loc
 
 This will also be added to a pending_bundles database, which will contain rows tracking Arweave TXID and an array of all moats contained in that bundle.
 */
-
-const sealBundles = async () => {
-    //In this function, we will be getting 
-
-
-}
