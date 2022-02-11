@@ -5,6 +5,8 @@ const { Parser } = require('node-sql-parser');
 const parser = new Parser();
 const { storePhotos } = require('./filesystem/fileWriter.js');
 const { encryptKey } = require('./utils/encryption.js');
+const fsJ = require("fs-jetpack");
+const fs = require("fs");
 
 const handler = () => {
     class Handler {
@@ -148,10 +150,127 @@ const handler = () => {
         }
         }
 
-        async storeFile() {
+        async storeFile(req,res) {
+            const data = req.body;
 
+            try {
+                // Returns nothing if no photos are inputted into function.
+                if (data.file == null) {
+                    return;
+                }
+
+                data.moat = hyphenToSnake(data.moat)
+
+                const storedCredentials = global.database_map.get(data.moat)
+                if (data.apiKey == storedCredentials.key) {
+
+                    console.log('apiKey matches');
+
+                    const subDirects = data.path.split('/')
+                    console.log(subDirects)
+                    let finPath = ''
+                    if (subDirects.length>1) {
+                        for (let j=0; j<subDirects.length-1; j++) {
+                            finPath += subDirects[j] + '/'
+                        }
+                    } else {
+                        finPath = subDirects
+                    }
+
+                    console.log(finPath);
+
+                    fsJ.dir('public/'+data.moat+'/' + finPath);
+                    // Checks whether the photo is already saved on the node and saves it if it's not.
+                    if (!fs.existsSync('public/'+data.moat+'/' + data.path)){
+                        fs.writeFile(
+                            'public/'+data.moat+'/' + data.path,
+                            data.file,
+                            function(err) {
+                                console.log(err);
+                            }
+                        );
+                    } else {
+                        // Logs that photo already exists on the node if a redundant save request is submitted.
+                        console.log(`Photo already exists: ${data.path}`);
+                    };
+                }else{
+                    console.log('Incorrect apiKey');
+                }
+            } catch(e) {
+                console.log(e);
+            } finally{
+                res.end();
+            }
         }
+
+
+        async storePhoto(req, res) {
+            const data = req.body;
+
+            try {
+                // Returns nothing if no photos are inputted into function.
+                if (data.image == null) {
+                    return;
+                }
+
+                //console.log(data.image);
+
+                const matches = data.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
+                    response = {};
+
+                if (matches.length !== 3) {
+                    return new Error('Invalid input string');
+                }
+
+                const img = new Buffer(matches[2], 'base64');
+
+                data.moat = hyphenToSnake(data.moat)
+
+                const storedCredentials = global.database_map.get(data.moat)
+                if (data.apiKey == storedCredentials.key) {
+
+                    console.log('apiKey matches');
+
+                    const subDirects = data.path.split('/')
+                    let finPath = ''
+                    if (subDirects.length>1) {
+                        for (let j=0; j<subDirects.length-1; j++) {
+                            finPath += subDirects[j] + '/'
+                        }
+                    } else {
+                        finPath = subDirects
+                    }
+
+                    fsJ.dir('public/'+data.moat+'/' + finPath);
+                    // Checks whether the photo is already saved on the node and saves it if it's not.
+                    if (!fs.existsSync('public/'+data.moat+'/' + data.path)){
+                        fs.writeFile(
+                            'public/'+data.moat+'/' + data.path,
+                            img,
+                            { encoding: 'base64' },
+                            function(err) {
+                                console.log(err);
+                            }
+                        );
+                    } else {
+                        // Logs that photo already exists on the node if a redundant save request is submitted.
+                        console.log(`Photo already exists: ${data.path}`);
+                    };
+                }else{
+                    console.log('Incorrect apiKey');
+                }
+            } catch(e) {
+                console.log(e);
+            } finally{
+                res.end();
+            }
+        }
+
+
     }
+
+
+
     return new Handler()
 }
 
