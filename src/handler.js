@@ -64,7 +64,7 @@ const handler = () => {
 
                 //Now lets store in the admin schema the credentials
                 const encryptedKey = encryptKey(data.key)
-                await admin_pool.pool.query(`INSERT INTO moats(moat_name, owner_address, api_key, encrypted_key) VALUES ('${data.moat}', '${data.address}', '${encryptedKey}', '${data.encryptedKey}')`)
+                await admin_pool.pool.query(`INSERT INTO moats(moat_name, owner_address, api_key, encrypted_key, encrypted_secret) VALUES ('${data.moat}', '${data.address}', '${encryptedKey}', '${data.encryptedKey}', '${data.secret}')`)
 
                 //Update the credentials map
 
@@ -73,7 +73,7 @@ const handler = () => {
                 _credentials.user = data.moat
                 _credentials.password = data.key
                 const newPool = new Pool(_credentials)
-                global.database_map.set(data.moat, {key: encryptedKey, pool: newPool})
+                global.database_map.set(data.moat, {key: data.key, pool: newPool})
 
                 await res.send(
                     {
@@ -107,8 +107,8 @@ const handler = () => {
             data.moat = hyphenToSnake(data.moat)
 
             const storedCredentials = global.database_map.get(data.moat)
-            if (data.apiKey == storedCredentials.key) {
-                //Credentials are valid
+            if (data.apiKey == storedCredentials.key && typeof data.hash == 'string') {
+                //Credentials are valid, contains the hash
 
                 try {
                     //Do the business logic here
@@ -120,7 +120,9 @@ const handler = () => {
                         //Write to bundle cache
 
                         const writeData = {
-                            query: data.query
+                            q: data.query,
+                            t: data.timestamp,
+                            h: data.hash
                         }
                         writeToBundleCache(req, writeData)
                     }
@@ -147,7 +149,7 @@ const handler = () => {
         }
 
         async storeFile() {
-            
+
         }
     }
     return new Handler()
