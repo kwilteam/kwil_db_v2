@@ -4,7 +4,7 @@ const {v4} = require('uuid');
 const knex = require('../../database/db.js');
 const Arweave = require('arweave');
 const colors = require('colors');
-const utils = require('./utils.js');
+const utils = require('./bundleFuncs.js');
 //const harmony = require('../../harmony/harmonyUtils.js');
 const arweave = Arweave.init({
     host: 'arweave.net',

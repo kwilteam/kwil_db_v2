@@ -6,16 +6,14 @@ const cluster = require('cluster');
 const Express = require('express');
 const app = Express();
 const cron = require('node-cron');
-//const { shoveBundles } = require('./src/bundler/bundleHandlers');
+//const { shoveBundles } = require('./src/bundler/bundleHandler');
 //const { syncNode } = require('./src/bundler/syncFuncs');
 const { bundleInit } = require('./src/bundling/bundleInit');
 const handlerFunc = require('./src/handler.js')
 const handler = handlerFunc.handler()
 const {pool, Pool, credentials} = require('./database/pool.js')
-const {generateAPIKey} = require('./src/utils/generateAPIKey');
 const { decryptKey } = require('./src/utils/encryption');
 const cors = require('cors');
-const { prependOnceListener } = require('process');
 let server = require('http').createServer();
 
 function shoveBundles() {}
@@ -88,7 +86,8 @@ const start = async () => {
             moat_name varchar(128) PRIMARY KEY,
             owner_address varchar(42) NOT NULL,
             api_key varchar(88) NOT NULL,
-            encrypted_key varchar(88) NOT NULL
+            encrypted_key varchar(88) NOT NULL,
+            encrypted_secret varchar(88) NOT NULL
         );`)
 
         await admin_pool.query('REVOKE connect ON DATABASE admin FROM PUBLIC;')
