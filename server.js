@@ -41,6 +41,7 @@ const start = async () => {
         app.post('/createMoat', handler.createMoat)
         app.post('/raw', handler.query)
         app.post('/storePhoto', handler.storePhoto)
+        app.post('/storeFile', handler.storeFile)
         /*app.post('/storeFile', handler.storeFile)
         app.post('/storePhoto', handler.storePhoto)
         app.post(`/transaction`, handler.transaction)*/
