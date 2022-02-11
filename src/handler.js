@@ -215,8 +215,7 @@ const handler = () => {
 
                 //console.log(data.image);
 
-                const matches = data.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
-                    response = {};
+                const matches = data.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
 
                 if (matches.length !== 3) {
                     return new Error('Invalid input string');
