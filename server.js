@@ -46,6 +46,14 @@ const start = async () => {
         app.get('/raw', handler.query)
         //app.use(Express.static('public', { fallthrough: false }));
 
+        //Create bundleDB table for recently submitted bundles
+        await pool.query(`CREATE TABLE IF NOT EXISTS bundleDB(
+            cursor_id varchar(44) NOT NULL,
+            moat varchar(64) NOT NULL,
+            submission_time timestamptz NOT NULL,
+            data varchar(2048) NOT NULL
+          );`)
+
         //Create a bundle table
         await pool.query(`CREATE TABLE IF NOT EXISTS bundles(
             bundle_id varchar(43) PRIMARY KEY,

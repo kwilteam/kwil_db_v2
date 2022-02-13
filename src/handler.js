@@ -1,6 +1,6 @@
 const {pool, Pool, credentials} = require('../database/pool.js')
 const { hyphenToSnake, snakeToHyphen } = require('./utils/utils.js')
-const {writeToBundleCache} = require('./bundling/bundleFuncs.js')
+const { writeToBundleCache } = require('./bundling/bundleFuncs.js')
 const { Parser } = require('node-sql-parser');
 const parser = new Parser();
 const { storePhotos } = require('./filesystem/fileWriter.js');
