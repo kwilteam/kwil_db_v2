@@ -1,6 +1,7 @@
-const {pool, Pool, credentials} = require('../database/pool.js')
+const {Pool, credentials} = require('../database/pool.js')
 const { hyphenToSnake, snakeToHyphen } = require('./utils/utils.js')
 const {writeToBundleCache} = require('./bundling/bundleFuncs.js')
+const {write2Bundle} = require('./bundling/bundleDB.js')
 const { Parser } = require('node-sql-parser');
 const parser = new Parser();
 const { storePhotos } = require('./filesystem/fileWriter.js');
@@ -60,9 +61,9 @@ const handler = () => {
             } else {
                 //If the schema does not exist
 
-                await pool.query(`CREATE DATABASE ${data.moat};`)
-                await pool.query(`REVOKE ALL ON DATABASE ${data.moat} FROM PUBLIC;`)
-                await pool.query(`CREATE ROLE ${data.moat} WITH PASSWORD '${data.key}'; ALTER ROLE "${data.moat}" WITH LOGIN; GRANT ALL PRIVILEGES ON DATABASE ${data.moat} TO ${data.moat};`)
+                await admin_pool.query(`CREATE DATABASE ${data.moat};`)
+                await admin_pool.query(`REVOKE ALL ON DATABASE ${data.moat} FROM PUBLIC;`)
+                await admin_pool.query(`CREATE ROLE ${data.moat} WITH PASSWORD '${data.key}'; ALTER ROLE "${data.moat}" WITH LOGIN; GRANT ALL PRIVILEGES ON DATABASE ${data.moat} TO ${data.moat};`)
 
                 //Now lets store in the admin schema the credentials
                 const encryptedKey = encryptKey(data.key)
@@ -126,7 +127,7 @@ const handler = () => {
                             t: data.timestamp,
                             h: data.hash
                         }
-                        writeToBundleCache(req, writeData)
+                        await write2Bundle(req, writeData)
                     }
 
                     res.send(queryResult)

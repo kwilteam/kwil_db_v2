@@ -7,6 +7,7 @@ const Express = require('express');
 const app = Express();
 const cron = require('node-cron');
 //const { shoveBundles } = require('./src/bundler/bundleHandler');
+const {shoveBundles} = require(`./src/bundling/shove.js`)
 //const { syncNode } = require('./src/bundler/syncFuncs');
 const { bundleInit } = require('./src/bundling/bundleInit');
 const handlerFunc = require('./src/handler.js')
@@ -15,8 +16,9 @@ const {pool, Pool, credentials} = require('./database/pool.js')
 const { decryptKey } = require('./src/utils/encryption');
 const cors = require('cors');
 let server = require('http').createServer();
+const partitions = require('./src/utils/bundlePartition.js')
 
-function shoveBundles() {}
+//function shoveBundles() {}
 function syncNode() {}
 
 
@@ -45,15 +47,23 @@ const start = async () => {
         /*app.post('/storeFile', handler.storeFile)
         app.post('/storePhoto', handler.storePhoto)
         app.post(`/transaction`, handler.transaction)*/
-        app.get('/raw', handler.query)
-        //app.use(Express.static('public', { fallthrough: false }));
+
+        try {
+            //Putting this in try catch since database likely exists
+            await pool.query(`CREATE DATABASE admin;`)
+        } catch(e) {
+            console.log(`Admin already exists`)
+        }
 
         //Now we create the master pool
         credentials.database = 'admin'
         const admin_pool = new Pool(credentials)
-        
+
+        //Set admin pool
+        global.admin_pool = admin_pool
+
         //Create a bundle table
-        await pool.query(`CREATE TABLE IF NOT EXISTS bundles(
+        await admin_pool.query(`CREATE TABLE IF NOT EXISTS bundles(
             bundle_id varchar(43) PRIMARY KEY,
             height integer NOT NULL,
             cursor_id varchar(44) NOT NULL,
@@ -62,18 +72,13 @@ const start = async () => {
           );`)
 
         //Create pending bundle table
-        await pool.query(`CREATE TABLE IF NOT EXISTS pending_bundles(
-            bundle_id text,
-            moats text[]
+        await admin_pool.query(`CREATE TABLE IF NOT EXISTS pending_bundles(
+            bundle_id text PRIMARY KEY,
+            moats text[] NOT NULL
         )`)
 
-
-        //Init bundles
-
-        await pool.query(`CREATE TABLE IF NOT EXISTS cached_bundle(
-            id SERIAL PRIMARY KEY,
-            post_data TEXT
-        )`)
+        //Partition
+        await partitions.partitionInit()
 
         try {
             await bundleInit()
@@ -81,17 +86,8 @@ const start = async () => {
             console.log(e)
         }
 
-        //Set the bundle partition:
-        global.bundle_partition = true
 
         //Create admin schema
-
-        try {
-            //Putting this in try catch since database likely exists
-            await pool.query(`CREATE DATABASE admin;`)
-        } catch(e) {
-            console.log(`Admin already exists`)
-        }
 
         await admin_pool.query(`CREATE TABLE IF NOT EXISTS moats(
             moat_name varchar(128) PRIMARY KEY,
@@ -106,9 +102,6 @@ const start = async () => {
         //Creating a map for all databases
 
         global.database_map = new Map()
-
-        //Set admin pool
-        global.database_map.set('admin', {key: null, pool: admin_pool})
 
         let userAuth = await admin_pool.query(`SELECT moat_name, api_key from moats;`)
         userAuth = userAuth.rows

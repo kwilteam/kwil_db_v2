@@ -12,16 +12,23 @@ const parser = new Parser();
 
 const ast = parser.astify(`select * from testschema.testtable; select * from testschema2.testtable;`)
 console.log(ast[0].from)*/
-
+const {key} = require('./key.js')
 const { Client, Pool } = require('pg');
 require(`dotenv`).config();
-
-
+const encrypt = require('./src/utils/encryption.js')
+const crypto = require('crypto')
+const Arweave = require('arweave')
+const arweave = Arweave.init({
+    host: 'arweave.net',
+    port: 443,
+    protocol: 'https',
+    timeout: 20000,
+})
 // Edits client credentials based on their connection (i.e. local docker image, google hosting, etc.)
 
  let credentials = {host: 'localhost',
  port: 5432,
- database: `postgres`,
+ database: `admin`,
  user: `postgres`,
  password: `password`,}
 
@@ -32,7 +39,7 @@ require(`dotenv`).config();
  password: `password`,}
 
 
-const pool = new Pool(credentials2)
+const pool = new Pool(credentials)
 
 pool.on('error', (err, client) => {
     console.error('Unexpected error on idle client', err)
@@ -47,7 +54,26 @@ pool.on('error', (err, client) => {
     //console.log(await pool.query(`DROP ROLE not_admin;`))
     //console.log(await pool.query(`CREATE ROLE not_admin WITH PASSWORD 'password'; ALTER ROLE "not_admin" WITH LOGIN; REVOKE connect ON DATABASE admin FROM not_admin;`))
     //console.log(await pool.query(`GRANT ALL PRIVILEGES ON DATABASE test3 TO not_admin ;`))
-    //console.log(await pool.query(`SHOW hba_file;`))
+    //let b = await pool.query(`select * from test56;`)
+    let arweaveTransaction = await arweave.createTransaction(
+      { data: 'test' },
+      key
+  );
+
+  arweaveTransaction.addTag('Moat', 'test1');
+  arweaveTransaction.addTag('Moat', 'test2');
+  await arweave.transactions.sign(arweaveTransaction, key);
+  let uploader = await arweave.transactions.getUploader(
+    arweaveTransaction
+);
+while (!uploader.isComplete) {
+    await uploader.uploadChunk();
+    console.log(
+        `${uploader.pctComplete}% complete, ${uploader.uploadedChunks}/${uploader.totalChunks}`
+    );
+};
+
+      
 }
 
 testF()
