@@ -178,8 +178,6 @@ const handler = () => {
                         finPath = subDirects
                     }
 
-                    console.log(finPath);
-
                     fsJ.dir('public/'+data.moat+'/' + finPath);
                     // Checks whether the photo is already saved on the node and saves it if it's not.
                     if (!fs.existsSync('public/'+data.moat+'/' + data.path)){
@@ -190,15 +188,17 @@ const handler = () => {
                                 console.log(err);
                             }
                         );
+                        res.send('success')
                     } else {
                         // Logs that photo already exists on the node if a redundant save request is submitted.
-                        console.log(`Photo already exists: ${data.path}`);
+                        res.send(`Photo already exists: ${data.path}`);
                     };
                 }else{
-                    console.log('Incorrect apiKey');
+                    res.send('Incorrect apiKey');
                 }
             } catch(e) {
                 console.log(e);
+                res.send('error');
             } finally{
                 res.end();
             }
@@ -216,8 +216,7 @@ const handler = () => {
 
                 //console.log(data.image);
 
-                const matches = data.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
-                    response = {};
+                const matches = data.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
 
                 if (matches.length !== 3) {
                     return new Error('Invalid input string');
@@ -250,18 +249,20 @@ const handler = () => {
                             img,
                             { encoding: 'base64' },
                             function(err) {
-                                console.log(err);
+                                res.send('file write error');
                             }
                         );
+                        res.send('success')
                     } else {
                         // Logs that photo already exists on the node if a redundant save request is submitted.
-                        console.log(`Photo already exists: ${data.path}`);
+                        res.send(`Photo already exists: ${data.path}`);
                     };
                 }else{
-                    console.log('Incorrect apiKey');
+                    res.send('Incorrect apiKey');
                 }
             } catch(e) {
                 console.log(e);
+                res.send('error');
             } finally{
                 res.end();
             }
