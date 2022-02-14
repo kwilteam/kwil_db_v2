@@ -1,0 +1,79 @@
+const bodyParser = require('body-parser');
+const colors = require('colors');
+require(`dotenv`).config();
+const numCPUs = require('os').cpus().length;
+const cluster = require('cluster');
+const Express = require('express');
+const app = Express();
+const cron = require('node-cron');
+//const { shoveBundles } = require('./src/bundler/bundleHandler');
+const {shoveBundles} = require(`./src/bundling/shove.js`)
+//const { syncNode } = require('./src/bundler/syncFuncs');
+const handlerFunc = require('./src/handler.js')
+const handler = handlerFunc.handler()
+const cors = require('cors');
+let server = require('http').createServer();
+const {databaseInit} = require('./src/databaseInit.js')
+
+//function shoveBundles() {}
+function syncNode() {}
+
+
+const start = async () => {
+    
+    if (cluster.isMaster) {
+
+        // Starts up the database and logs startup to console
+        console.log(`Master ${process.pid} is running`);
+
+        // Creates Node.js worker instances on all cores
+        for (let i = 0; i < numCPUs; i++) {
+            cluster.fork();
+        }
+        app.use(bodyParser.json({ limit: '10mb' }));
+
+        if (process.env.NODE_ENV == 'development') {
+            app.use(cors())
+        }
+
+        //Request handlers right here
+        app.post('/createMoat', handler.createMoat)
+        app.post('/raw', handler.query)
+        app.post('/storePhoto', handler.storePhoto)
+        app.post('/storeFile', handler.storeFile)
+
+        // Syncs data with server.
+
+        await databaseInit()
+
+        try {
+            cron.schedule('0 0 */1 * * *', async function () {
+                await syncNode();
+                console.log(`Node Synced`.green);
+                await shoveBundles();
+            })
+            } catch(e) {
+                console.log('There was an error syncing'.red);
+                console.log(e);
+            };
+
+        // Avoids running code on several worker threads.
+        try {
+            await syncNode();
+            console.log(`Node Synced`.green);
+            await shoveBundles();
+        } catch(e) {
+            console.log('There was an error syncing or shoving'.red);
+            console.log(e);
+        };
+
+        //Making a websocket and http server
+        server.on('request', app);
+        server.listen(process.env.NODE_PORT, function () {
+            console.log(`Synchronizer is running on port ${process.env.NODE_PORT}`)
+        })
+    }
+};
+
+
+start();
