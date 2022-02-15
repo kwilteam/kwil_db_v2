@@ -63,7 +63,7 @@ const shoveBundles = async () => {
     }
 
     //We now have our bundle!  Submit to arweave
-    let arweaveTransaction = await arweave.createTransaction({data: JSON.stringify(finalObj)},
+    let arweaveTransaction = await arweave.createTransaction({data: finalObj},
         key
     );
 
@@ -133,7 +133,7 @@ const scanPendingBundles = async () => {
     let pendingBundles = await global.admin_pool.query(`SELECT * FROM pending_bundles`)
     pendingBundles = pendingBundles.rows
     for (let i = 0; i<pendingBundles.length; i++) {
-        const status = await arweave.transactions.getStatus(pendingBundles.bundle_id);
+        const status = await arweave.transactions.getStatus(pendingBundles[i].bundle_id);
 
         if (status.status == 202) { // Outputs that bundle is still pending to console.
 
@@ -141,7 +141,7 @@ const scanPendingBundles = async () => {
 
         } else if (status.status == 200) { // Outputs that bundle has been mined to console and adds transaction data to Harmony network.
 
-            console.log(`${pendingBundles[i]} has been mined.  Deleting from pending pool.  Status: ${status.status}`);
+            console.log(`${pendingBundles[i].bundle_id} has been mined.  Deleting from pending pool.  Status: ${status.status}`);
             await deleteFile(`bundles/${pendingBundles[i].bundle_id}`);
 
         } else if (status.status == 404) { // Resubmits bundle to ARWeave network if transaction fails to get mined.
@@ -155,6 +155,11 @@ const scanPendingBundles = async () => {
                     console.log(e)
                 }
 
+        } else if (status.status == 400){
+            //First time I've seen arweave throw this
+            console.log('Status 400 error.  Resubmitting')
+            console.log(status)
+            await sendBundleToArweave(pendingBundles[i].bundle_id, pendingBundles[i].moats)
         } else {
             console.log(`There was an error.  Arweave returned an unexpected status code.`);
             console.log(status);
@@ -165,7 +170,7 @@ const scanPendingBundles = async () => {
 async function sendBundleToArweave(_id, _moats) {
     //Read in the file
     const bundleData = await readFile(`bundles/${_id}`)
-    let arweaveTransaction = await arweave.createTransaction({data: JSON.stringify(bundleData)},
+    let arweaveTransaction = await arweave.createTransaction({data: bundleData},
         key
     );
 
@@ -174,9 +179,6 @@ async function sendBundleToArweave(_id, _moats) {
     }
 
     await arweave.transactions.sign(arweaveTransaction, key);
-    console.log('In sendToArweave:')
-    console.log(_moats)
-    console.log(arweaveTransaction)
     await global.admin_pool.query(`INSERT INTO pending_bundles (bundle_id, moats) VALUES ($1, $2)`, [arweaveTransaction.id, _moats])
     await global.admin_pool.query(`DELETE FROM pending_bundles WHERE bundle_id LIKE '${_id}'`) //Delete old value
     
