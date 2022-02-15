@@ -1,8 +1,15 @@
 {
+<<<<<<< HEAD
   "name": "multi-synch",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+=======
+  "name": "db_v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+>>>>>>> master
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +17,10 @@
   "license": "ISC",
   "dependencies": {
     "arweave": "^1.10.23",
+<<<<<<< HEAD
     "axios": "^0.26.0",
+=======
+>>>>>>> master
     "base64url": "^3.0.1",
     "body-parser": "^1.19.1",
     "cluster": "^0.7.7",
@@ -20,6 +30,7 @@
     "express": "^4.17.2",
     "fs-jetpack": "^4.3.1",
     "graceful-fs": "^4.2.9",
+<<<<<<< HEAD
     "jssha": "^3.2.0",
     "node-cron": "^3.0.0",
     "node-sql-parser": "^4.0.8",
@@ -29,5 +40,12 @@
     "utf8": "^3.0.0",
     "uuid": "^8.3.2",
     "ws": "^8.5.0"
+=======
+    "jsrsasign": "^10.5.4",
+    "jssha": "^3.2.0",
+    "node-cron": "^3.0.0",
+    "pg": "^8.7.3",
+    "uuid": "^8.3.2"
+>>>>>>> master
   }
 }

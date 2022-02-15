@@ -1,5 +1,9 @@
 const bodyParser = require('body-parser');
+<<<<<<< HEAD
 //const colors = require('colors');
+=======
+const colors = require('colors');
+>>>>>>> master
 require(`dotenv`).config();
 const numCPUs = require('os').cpus().length;
 const cluster = require('cluster');
@@ -7,6 +11,7 @@ const Express = require('express');
 const app = Express();
 const cron = require('node-cron');
 //const { shoveBundles } = require('./src/bundler/bundleHandler');
+<<<<<<< HEAD
 const {shoveBundles} = require(`./src/bundling/shove.js`)
 //const { syncNode } = require('./src/bundler/syncFuncs');
 const { bundleInit } = require('./src/bundling/bundleInit');
@@ -17,6 +22,16 @@ const { decryptKey } = require('./src/utils/encryption');
 const cors = require('cors');
 let server = require('http').createServer();
 const partitions = require('./src/utils/bundlePartition.js')
+=======
+const {shove} = require(`./src/bundling/shove.js`)
+//const { syncNode } = require('./src/bundler/syncFuncs');
+const handlerFunc = require('./src/handler.js')
+const handler = handlerFunc.handler()
+const cors = require('cors');
+let server = require('http').createServer();
+const partitions = require('./src/utils/bundlePartitions.js')
+const {databaseInit} = require('./src/databaseInit.js')
+>>>>>>> master
 
 //function shoveBundles() {}
 function syncNode() {}
@@ -44,6 +59,7 @@ const start = async () => {
         app.post('/raw', handler.query)
         app.post('/storePhoto', handler.storePhoto)
         app.post('/storeFile', handler.storeFile)
+<<<<<<< HEAD
         app.post('/getMoats', handler.getMoats)
         /*app.post('/storeFile', handler.storeFile)
         app.post('/storePhoto', handler.storePhoto)
@@ -77,11 +93,18 @@ const start = async () => {
             bundle_id text PRIMARY KEY,
             moats text[] NOT NULL
         )`)
+=======
+
+        // Syncs data with server.
+
+        await databaseInit()
+>>>>>>> master
 
         //Partition
         await partitions.partitionInit()
 
         try {
+<<<<<<< HEAD
             await bundleInit()
         } catch(e) {
             console.log(e)
@@ -126,6 +149,12 @@ const start = async () => {
                 await syncNode();
                 console.log(`Node Synced`.green);
                 await shoveBundles();
+=======
+            cron.schedule('0 0 0 * * *', async function () {
+                //await syncNode();
+                console.log(`Node Synced`.green);
+                await shove();
+>>>>>>> master
             })
             } catch(e) {
                 console.log('There was an error syncing'.red);
@@ -134,9 +163,15 @@ const start = async () => {
 
         // Avoids running code on several worker threads.
         try {
+<<<<<<< HEAD
             await syncNode();
             console.log(`Node Synced`.green);
             await shoveBundles();
+=======
+            //await syncNode();
+            console.log(`Node Synced`.green);
+            await shove();
+>>>>>>> master
         } catch(e) {
             console.log('There was an error syncing or shoving'.red);
             console.log(e);

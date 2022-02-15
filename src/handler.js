@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const {Pool, credentials} = require('../database/pool.js')
 const { hyphenToSnake, snakeToHyphen } = require('./utils/utils.js')
 const {writeToBundleCache} = require('./bundling/bundleFuncs.js')
@@ -23,10 +24,27 @@ const handler = () => {
 
             If it doesn't exist, then we will create the schema, and update our schema table (located at admin.schemas) with the user credentials.
 
+=======
+const { hyphenToSnake } = require('./utils/utils.js')
+const {ifDBExists, createDatabase} = require('./utils/dbUtils')
+const {write2Bundle} = require('./bundling/bundleDB.js')
+const fsJ = require("fs-jetpack");
+const fs = require("fs");
+const { checkQuerySig } = require('./signatures/signatures.js');
+
+const handler = () => {
+    class Handler {
+
+        async createMoat(req, res) {
+            /*
+            When creating a moat, we create a new database.  We first need to check if the database exists
+            Then, if not, create the database
+>>>>>>> master
             */
 
             let data = req.body
 
+<<<<<<< HEAD
             /*
             Data formatted like:
                 data: {
@@ -54,6 +72,22 @@ const handler = () => {
                 res.send(`API key must have a length of 32`)
             }
             else if (result.length > 0) {
+=======
+            try {
+
+            //First make sure it is snake case
+            console.log(data)
+            data.moat = hyphenToSnake(data.moat)
+            const dbExists = await ifDBExists(data.moat)
+            //If the schema doesn't exist, result will be [].  If it does, result will be [schema_name: data.data.moat]
+            
+            if (data.publicKey.length != 683) {
+                console.log(data.publicKey)
+                //Putting this here to ensure the key isn't a sql injection since, given its position, it could be possible
+                res.send(`Public Key must be length 683`)
+            }
+            else if (dbExists) {
+>>>>>>> master
                 //If the schema exists already
                 await res.send({
                     creation: false,
@@ -61,6 +95,7 @@ const handler = () => {
                 })
             } else {
                 //If the schema does not exist
+<<<<<<< HEAD
 
                 await admin_pool.query(`CREATE DATABASE ${data.moat};`)
                 await admin_pool.query(`REVOKE ALL ON DATABASE ${data.moat} FROM PUBLIC;`)
@@ -81,6 +116,9 @@ const handler = () => {
 
                 await registry.addMoat(data.moat,data.address,data.key,data.secret)
 
+=======
+                await createDatabase(data)
+>>>>>>> master
                 await res.send(
                     {
                         creation: true,
@@ -101,6 +139,7 @@ const handler = () => {
         }
 
         async query (req, res) {
+<<<<<<< HEAD
             /*
 
             Will need to check if user and password are valid auth credentials
@@ -114,19 +153,42 @@ const handler = () => {
 
             const storedCredentials = global.database_map.get(data.moat)
             if (data.apiKey == storedCredentials.key && typeof data.hash == 'string') {
+=======
+            try {
+                let data = req.body
+
+                data.moat = hyphenToSnake(data.moat)
+                let senderValidity = false
+                try {
+                    senderValidity = await checkQuerySig(data)
+                } catch(e) {
+                    res.send('If this database exists, it is not being validated by this node.')
+                }
+
+            if (senderValidity) {
+>>>>>>> master
                 //Credentials are valid, contains the hash
 
                 try {
                     //Do the business logic here
+<<<<<<< HEAD
                     
                     const dbPool = global.database_map.get(data.moat)
                     const queryResult = await dbPool.pool.query(data.query)
+=======
+                    const dbPool = global.database_map.get(data.moat)
+                    const queryResult = await dbPool.pool.query(data.data)
+>>>>>>> master
 
                     if (data.store) {
                         //Write to bundle cache
 
                         const writeData = {
+<<<<<<< HEAD
                             q: data.query,
+=======
+                            q: data.data,
+>>>>>>> master
                             t: data.timestamp,
                             h: data.hash
                         }
@@ -144,7 +206,11 @@ const handler = () => {
                 //Credentials are invalid
                 res.send({
                     valid: false,
+<<<<<<< HEAD
                     results: `Invalid database credentials`
+=======
+                    results: `Invalid database signature`
+>>>>>>> master
                 })
             }
             res.end()
@@ -165,6 +231,7 @@ const handler = () => {
 
                 data.moat = hyphenToSnake(data.moat)
 
+<<<<<<< HEAD
                 const storedCredentials = global.database_map.get(data.moat)
                 if (data.apiKey == storedCredentials.key) {
 
@@ -172,6 +239,12 @@ const handler = () => {
 
                     const subDirects = data.path.split('/')
                     console.log(subDirects)
+=======
+                const validSig = await checkQuerySig(data)
+                if (validSig) {
+
+                    const subDirects = data.path.split('/')
+>>>>>>> master
                     let finPath = ''
                     if (subDirects.length>1) {
                         for (let j=0; j<subDirects.length-1; j++) {
@@ -229,10 +302,15 @@ const handler = () => {
 
                 data.moat = hyphenToSnake(data.moat)
 
+<<<<<<< HEAD
                 const storedCredentials = global.database_map.get(data.moat)
                 if (data.apiKey == storedCredentials.key) {
 
                     console.log('apiKey matches');
+=======
+                const validSig = await checkQuerySig(data)
+                if (validSig) {
+>>>>>>> master
 
                     const subDirects = data.path.split('/')
                     let finPath = ''
@@ -270,6 +348,7 @@ const handler = () => {
                 res.end();
             }
         }
+<<<<<<< HEAD
 
        async getMoats(req, res){
             try {
@@ -284,6 +363,10 @@ const handler = () => {
 
 
 
+=======
+    }
+
+>>>>>>> master
     return new Handler()
 }
 
