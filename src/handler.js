@@ -4,6 +4,9 @@ const {write2Bundle} = require('./bundling/bundleDB.js')
 const fsJ = require("fs-jetpack");
 const fs = require("fs");
 const { checkQuerySig } = require('./signatures/signatures.js');
+const Registry = require('./registry/mainRegistry')
+
+const registry = Registry();
 
 const handler = () => {
     class Handler {
@@ -38,6 +41,7 @@ const handler = () => {
             } else {
                 //If the schema does not exist
                 await createDatabase(data)
+                await registry.addMoat(data.moat,data.address,data.encryptedKey,data.secret)
                 await res.send(
                     {
                         creation: true,
@@ -217,6 +221,16 @@ const handler = () => {
                 console.log(e);
                 res.send('error');
             } finally{
+                res.end();
+            }
+        }
+
+        async getMoats(req, res){
+            try {
+                const data = req.body;
+                res.send(await registry.getMoats(data.owner));
+            }
+            catch (e) {
                 res.end();
             }
         }

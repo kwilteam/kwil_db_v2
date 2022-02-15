@@ -1,10 +1,10 @@
 const axios = require("axios");
 
-const createConnectorRegistry = (_credentials, _secret) => {
+const createConnectorRegistry = () => {
     //const secret = _secret.slice()
     //const params = createRegistry(_credentials)
     const params = {
-        url: 'registry.kwil.xyz',
+        url: 'http://registry.kwil.xyz:1984',
         method: 'post',
         timeout: 20000,
         data: {
@@ -40,6 +40,7 @@ const createConnectorRegistry = (_credentials, _secret) => {
             return response.data
         }
     }
+    return new KwilDB();
 }
 
 module.exports = createConnectorRegistry
