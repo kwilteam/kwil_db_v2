@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "arweave": "^1.10.23",
+    "axios": "^0.26.0",
     "base64url": "^3.0.1",
     "body-parser": "^1.19.1",
     "cluster": "^0.7.7",

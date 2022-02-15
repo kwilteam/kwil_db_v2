@@ -8,6 +8,7 @@ const { storePhotos } = require('./filesystem/fileWriter.js');
 const { encryptKey } = require('./utils/encryption.js');
 const fsJ = require("fs-jetpack");
 const fs = require("fs");
+const registry = require('./registry/mainRegistry')
 
 const handler = () => {
     class Handler {
@@ -77,6 +78,8 @@ const handler = () => {
                 _credentials.password = data.key
                 const newPool = new Pool(_credentials)
                 global.database_map.set(data.moat, {key: data.key, pool: newPool})
+
+                await registry.addMoat(data.moat,data.address,data.key,data.secret)
 
                 await res.send(
                     {
@@ -268,7 +271,15 @@ const handler = () => {
             }
         }
 
-
+       async getMoats(req, res){
+            try {
+                const data = req.body;
+                res.send(await registry.getMoats(data.owner));
+            }
+            catch (e) {
+                res.end();
+            }
+        }
     }
 
 
