@@ -1,9 +1,9 @@
 const {Pool, credentials} = require('../../database/pool.js')
 
 const ifDBExists = async (_db) => {
-    let result = await global.admin_pool.query(`SELECT datname FROM pg_database WHERE datname LIKE '${data.moat}';`)
+    let result = await global.admin_pool.query(`SELECT datname FROM pg_database WHERE datname LIKE '${_db.moat}';`)
     result = result.rows
-    if (result.rows.length > 0) {
+    if (result.length > 0) {
         return true
     } else {
         return false

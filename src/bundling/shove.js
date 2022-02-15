@@ -34,7 +34,7 @@ const shoveBundles = async () => {
     //Will start by switching the bundle partition
     const currentPartition = !!global.current_partition //FIXME: Doing this to copy, unsure if booleans copy automatically or not
     console.log(currentPartition)
-    //await partitions.switchPartition()
+    await partitions.switchPartition()
     //Worth noting that switching partition doesn't delete the old one, we need to use delete offset partition later!
 
     //Get moats and endpoints
@@ -53,6 +53,12 @@ const shoveBundles = async () => {
         for (let j = 0; j<endpoints.length; j++) {
             let data = await global.admin_pool.query(`SELECT post_data FROM "bundle_${currentPartition}" WHERE moat_name = '${moats[i].moat_name}' AND request_endpoint = '${endpoints[j].request_endpoint}'`)
             finalObj[moats[i].moat_name][endpoints[j].request_endpoint] = data.rows
+        }
+
+        if (Object.keys(finalObj[moats[i].moat_name]).length == 0) {
+            //No data was added
+            console.log(`${moats[i].moat_name} was empty`)
+            delete finalObj[moats[i].moat_name]
         }
     }
 
@@ -79,8 +85,7 @@ const shoveBundles = async () => {
     //Now lets store the arweave txid
 
     await write2File('bundles/'+arweaveTransaction.id, JSON.stringify(finalObj))
-    console.log(moats)
-    await global.admin_pool.query(`INSERT INTO pending_bundles (bundle_id, moats) VALUES ('${arweaveTransaction.id}', ARRAY ${moats})`)
+    await global.admin_pool.query(`INSERT INTO pending_bundles (bundle_id, moats) VALUES ($1, $2)`, [arweaveTransaction.id, moats])
 
     let uploader = await arweave.transactions.getUploader(
         arweaveTransaction
@@ -125,7 +130,8 @@ function isBlockEmpty (dataObj) {
 }
 
 const scanPendingBundles = async () => {
-    const pendingBundles = await global.admin_pool.query(`SELECT * FROM pending_bundles`)
+    let pendingBundles = await global.admin_pool.query(`SELECT * FROM pending_bundles`)
+    pendingBundles = pendingBundles.rows
     for (let i = 0; i<pendingBundles.length; i++) {
         const status = await arweave.transactions.getStatus(pendingBundles.bundle_id);
 
@@ -168,8 +174,10 @@ async function sendBundleToArweave(_id, _moats) {
     }
 
     await arweave.transactions.sign(arweaveTransaction, key);
-
-    await global.admin_pool.query(`INSERT INTO pending_bundles (bundle_id, moats) VALUES ('${arweaveTransaction.id}', ARRAY ${_moats})`)
+    console.log('In sendToArweave:')
+    console.log(_moats)
+    console.log(arweaveTransaction)
+    await global.admin_pool.query(`INSERT INTO pending_bundles (bundle_id, moats) VALUES ($1, $2)`, [arweaveTransaction.id, _moats])
     await global.admin_pool.query(`DELETE FROM pending_bundles WHERE bundle_id LIKE '${_id}'`) //Delete old value
     
     //Rename the bundle file

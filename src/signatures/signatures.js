@@ -7,7 +7,7 @@ const checkQuerySig = async (_data) => {
     */
    const moatModulus = await getMoatModulus(_data.moat)
    const pubKey = createPubJWK(moatModulus)
-   let sig = new rs.crypto.Signature({ alg: 'SHA256withRSA' });
+   let sig = new rs.crypto.Signature({ alg: 'SHA384withRSA' });
    sig.init(pubKey)
    sig.updateString(createSignedQuery(_data))
    return sig.verify(_data.signature)

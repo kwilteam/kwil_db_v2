@@ -19,11 +19,13 @@ const handler = () => {
             try {
 
             //First make sure it is snake case
+            console.log(data)
             data.moat = hyphenToSnake(data.moat)
             const dbExists = await ifDBExists(data.moat)
             //If the schema doesn't exist, result will be [].  If it does, result will be [schema_name: data.data.moat]
             
             if (data.publicKey.length != 683) {
+                console.log(data.publicKey)
                 //Putting this here to ensure the key isn't a sql injection since, given its position, it could be possible
                 res.send(`Public Key must be length 683`)
             }
@@ -57,25 +59,29 @@ const handler = () => {
 
         async query (req, res) {
             try {
-            let data = req.body
+                let data = req.body
 
-            data.moat = hyphenToSnake(data.moat)
-            
-            const senderValidity = await checkQuerySig(data)
+                data.moat = hyphenToSnake(data.moat)
+                let senderValidity = false
+                try {
+                    senderValidity = await checkQuerySig(data)
+                } catch(e) {
+                    res.send('If this database exists, it is not being validated by this node.')
+                }
+
             if (senderValidity) {
                 //Credentials are valid, contains the hash
 
                 try {
                     //Do the business logic here
-                    
                     const dbPool = global.database_map.get(data.moat)
-                    const queryResult = await dbPool.pool.query(data.query)
+                    const queryResult = await dbPool.pool.query(data.data)
 
                     if (data.store) {
                         //Write to bundle cache
 
                         const writeData = {
-                            q: data.query,
+                            q: data.data,
                             t: data.timestamp,
                             h: data.hash
                         }
@@ -93,7 +99,7 @@ const handler = () => {
                 //Credentials are invalid
                 res.send({
                     valid: false,
-                    results: `Invalid database credentials`
+                    results: `Invalid database signature`
                 })
             }
             res.end()
