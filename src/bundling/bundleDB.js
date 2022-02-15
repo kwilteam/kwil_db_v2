@@ -3,11 +3,6 @@ This file will be used to write bundle data to a database
 
 The table containing bundles will contain four columns: data (the stringified body data), moat name, the endpoint it was sent to, and an auto incrementer.
 */
-<<<<<<< HEAD
-const utf8 = require('utf8')
-
-=======
->>>>>>> master
 const write2Bundle = async (_req, _data) => {
     try {
         let endpoint = _req.originalUrl.split("/")
