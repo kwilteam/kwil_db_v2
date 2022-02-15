@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-
-=======
 const jssha = require('jssha')
 const b64 = require('base64url')
->>>>>>> master
 
 const hyphenToSnake = (_string) => {
     let string = _string.toLowerCase()
@@ -40,11 +36,6 @@ const generateRandomString = (_length) => {
     return result;
 };
 
-<<<<<<< HEAD
-const jssha = require('jssha')
-const b64 = require('base64url')
-=======
->>>>>>> master
 const sha384 = (_text) => {
     try {
         if (_text != null){
@@ -61,9 +52,6 @@ const sha384 = (_text) => {
     }
 };
 
-<<<<<<< HEAD
-module.exports = {hyphenToSnake, snakeToHyphen, hashPath, generateRandomString, sha384}
-=======
 const getMoatModulus = async (_moat) => {
     //This doesn't have to be async if it is getting data from the database_map and not database
     const moatData = global.database_map.get(_moat)
@@ -85,4 +73,3 @@ const createPubJWK = (_modulus) => {
 }
 
 module.exports = {hyphenToSnake, snakeToHyphen, hashPath, generateRandomString, sha384, getMoatModulus, createPubJWK}
->>>>>>> master
