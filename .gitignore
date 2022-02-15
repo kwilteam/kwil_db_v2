@@ -102,8 +102,4 @@ app.yaml
 key.js
 cloud_config/
 finalizedBundles/
-<<<<<<< HEAD
 pendingBundles/
-=======
-pendingBundles/
->>>>>>> master
