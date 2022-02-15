@@ -7,12 +7,13 @@ const Express = require('express');
 const app = Express();
 const cron = require('node-cron');
 //const { shoveBundles } = require('./src/bundler/bundleHandler');
-const {shoveBundles} = require(`./src/bundling/shove.js`)
+const {shove} = require(`./src/bundling/shove.js`)
 //const { syncNode } = require('./src/bundler/syncFuncs');
 const handlerFunc = require('./src/handler.js')
 const handler = handlerFunc.handler()
 const cors = require('cors');
 let server = require('http').createServer();
+const partitions = require('./src/utils/bundlePartitions.js')
 const {databaseInit} = require('./src/databaseInit.js')
 
 //function shoveBundles() {}
@@ -46,11 +47,14 @@ const start = async () => {
 
         await databaseInit()
 
+        //Partition
+        await partitions.partitionInit()
+
         try {
-            cron.schedule('0 0 */1 * * *', async function () {
-                await syncNode();
+            cron.schedule('0 0 0 * * *', async function () {
+                //await syncNode();
                 console.log(`Node Synced`.green);
-                await shoveBundles();
+                await shove();
             })
             } catch(e) {
                 console.log('There was an error syncing'.red);
@@ -59,9 +63,9 @@ const start = async () => {
 
         // Avoids running code on several worker threads.
         try {
-            await syncNode();
+            //await syncNode();
             console.log(`Node Synced`.green);
-            await shoveBundles();
+            await shove();
         } catch(e) {
             console.log('There was an error syncing or shoving'.red);
             console.log(e);

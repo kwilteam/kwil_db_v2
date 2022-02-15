@@ -1,4 +1,4 @@
-const partitions = require('./utils/bundlePartition.js')
+const partitions = require('./utils/bundlePartitions.js')
 const {pool, Pool, credentials} = require('../database/pool.js')
 
 const databaseInit = async () => {

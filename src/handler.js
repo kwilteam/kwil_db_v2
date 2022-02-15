@@ -1,13 +1,9 @@
 const { hyphenToSnake } = require('./utils/utils.js')
 const {ifDBExists, createDatabase} = require('./utils/dbUtils')
-const {writeToBundleCache} = require('./bundling/bundleFuncs.js')
 const {write2Bundle} = require('./bundling/bundleDB.js')
-const { Parser } = require('node-sql-parser');
-const parser = new Parser();
-const { storePhotos } = require('./filesystem/fileWriter.js');
-const { encryptKey } = require('./utils/encryption.js');
 const fsJ = require("fs-jetpack");
 const fs = require("fs");
+const { checkQuerySig } = require('./signatures/signatures.js');
 
 const handler = () => {
     class Handler {
@@ -60,19 +56,13 @@ const handler = () => {
         }
 
         async query (req, res) {
-            /*
-
-            Will need to check if user and password are valid auth credentials
-
-            */
-
             try {
             let data = req.body
 
             data.moat = hyphenToSnake(data.moat)
-
-            const storedCredentials = global.database_map.get(data.moat)
-            if (data.apiKey == storedCredentials.key && typeof data.hash == 'string') {
+            
+            const senderValidity = await checkQuerySig(data)
+            if (senderValidity) {
                 //Credentials are valid, contains the hash
 
                 try {
@@ -124,13 +114,10 @@ const handler = () => {
 
                 data.moat = hyphenToSnake(data.moat)
 
-                const storedCredentials = global.database_map.get(data.moat)
-                if (data.apiKey == storedCredentials.key) {
-
-                    console.log('apiKey matches');
+                const validSig = await checkQuerySig(data)
+                if (validSig) {
 
                     const subDirects = data.path.split('/')
-                    console.log(subDirects)
                     let finPath = ''
                     if (subDirects.length>1) {
                         for (let j=0; j<subDirects.length-1; j++) {
@@ -188,10 +175,8 @@ const handler = () => {
 
                 data.moat = hyphenToSnake(data.moat)
 
-                const storedCredentials = global.database_map.get(data.moat)
-                if (data.apiKey == storedCredentials.key) {
-
-                    console.log('apiKey matches');
+                const validSig = await checkQuerySig(data)
+                if (validSig) {
 
                     const subDirects = data.path.split('/')
                     let finPath = ''
@@ -229,11 +214,7 @@ const handler = () => {
                 res.end();
             }
         }
-
-
     }
-
-
 
     return new Handler()
 }
