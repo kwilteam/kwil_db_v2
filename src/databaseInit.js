@@ -44,7 +44,7 @@ const databaseInit = async () => {
         encrypted_secret varchar(88) NOT NULL
     );`)
 
-    await admin_pool.query('REVOKE ALL ON DATABASE admin FROM PUBLIC;')
+    await admin_pool.query('REVOKE connect ON DATABASE admin FROM PUBLIC;')
 
     //Creating a map for all databases
 

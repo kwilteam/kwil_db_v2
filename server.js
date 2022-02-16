@@ -43,6 +43,7 @@ const start = async () => {
         app.post('/storePhoto', handler.storePhoto)
         app.post('/storeFile', handler.storeFile)
         app.post('/getMoats', handler.getMoats)
+        app.post('/preparedStatement', handler.preparedStatement)
 
         // Syncs data with server.
 

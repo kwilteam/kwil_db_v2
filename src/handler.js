@@ -226,6 +226,42 @@ const handler = () => {
             }
         }
 
+        async preparedStatement (req, res) {
+            try {
+                const data = req.body
+                data.moat = hyphenToSnake(data.moat)
+
+                //Check signature
+                if (await checkQuerySig(data)) {
+                    //Execute prepared statement
+                    const dbPool = global.database_map.get(data.moat)
+
+                    //Change this part with prepared statement
+                    const queryResult = await dbPool.pool.query(data.data.query, data.data.inputs)
+
+                    if (data.store) {
+                        //Write to bundle cache
+
+                        const writeData = {
+                            q: data.data,
+                            t: data.timestamp,
+                            h: data.hash
+                        }
+                        await write2Bundle(req, writeData)
+                    }
+
+                    res.send(queryResult)
+
+                }
+
+
+            } catch(e) {
+                console.log(e)
+                res.send(e.toString())
+            }
+            res.end()
+        }
+
         async getMoats(req, res){
             try {
                 const data = req.body;
