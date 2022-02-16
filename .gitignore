@@ -93,8 +93,7 @@ Thumbs.db
 # Cache Data
 cacheData/
 bundles/
-public/images/
-public/settings/
+public/
 
 # Private
 .env

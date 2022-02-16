@@ -4,7 +4,8 @@ const {write2Bundle} = require('./bundling/bundleDB.js')
 const fsJ = require("fs-jetpack");
 const fs = require("fs");
 const { checkQuerySig } = require('./signatures/signatures.js');
-const Registry = require('./registry/mainRegistry')
+const Registry = require('./registry/mainRegistry');
+const { storePhotos } = require('./filesystem/fileWriter.js');
 
 const registry = Registry();
 
@@ -17,12 +18,9 @@ const handler = () => {
             Then, if not, create the database
             */
 
-            let data = req.body
-
             try {
-
+            let data = req.body
             //First make sure it is snake case
-            console.log(data)
             data.moat = hyphenToSnake(data.moat)
             const dbExists = await ifDBExists(data.moat)
             //If the schema doesn't exist, result will be [].  If it does, result will be [schema_name: data.data.moat]
@@ -114,11 +112,11 @@ const handler = () => {
         }
 
         async storeFile(req,res) {
-            const data = req.body;
 
             try {
+                const data = req.body;
                 // Returns nothing if no photos are inputted into function.
-                if (data.file == null) {
+                if (data.data.file == null) {
                     return;
                 }
 
@@ -127,7 +125,7 @@ const handler = () => {
                 const validSig = await checkQuerySig(data)
                 if (validSig) {
 
-                    const subDirects = data.path.split('/')
+                    const subDirects = data.data.path.split('/')
                     let finPath = ''
                     if (subDirects.length>1) {
                         for (let j=0; j<subDirects.length-1; j++) {
@@ -139,21 +137,31 @@ const handler = () => {
 
                     fsJ.dir('public/'+data.moat+'/' + finPath);
                     // Checks whether the photo is already saved on the node and saves it if it's not.
-                    if (!fs.existsSync('public/'+data.moat+'/' + data.path)){
+                    if (!fs.existsSync('public/'+data.moat+'/' + data.data.path)){
                         fs.writeFile(
-                            'public/'+data.moat+'/' + data.path,
-                            data.file,
+                            'public/'+data.moat+'/' + data.data.path,
+                            data.data.file,
                             function(err) {
                                 console.log(err);
                             }
                         );
+                        const writeData = {
+                            q: data.data,
+                            t: data.timestamp,
+                            h: data.hash
+                        }
+
+                        if (data.store) {
+                            await write2Bundle(req, writeData)
+                        }
+                        
                         res.send('success')
                     } else {
                         // Logs that photo already exists on the node if a redundant save request is submitted.
                         res.send(`Photo already exists: ${data.path}`);
                     };
                 }else{
-                    res.send('Incorrect apiKey');
+                    res.send('Incorrect signature');
                 }
             } catch(e) {
                 console.log(e);
@@ -165,30 +173,20 @@ const handler = () => {
 
 
         async storePhoto(req, res) {
-            const data = req.body;
+            
 
             try {
+                const data = req.body;
+                data.moat = hyphenToSnake(data.moat)
                 // Returns nothing if no photos are inputted into function.
-                if (data.image == null) {
+                if (data.data.file == null) {
                     return;
                 }
-
-                //console.log(data.image);
-
-                const matches = data.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-
-                if (matches.length !== 3) {
-                    return new Error('Invalid input string');
-                }
-
-                const img = new Buffer(matches[2], 'base64');
-
-                data.moat = hyphenToSnake(data.moat)
 
                 const validSig = await checkQuerySig(data)
                 if (validSig) {
 
-                    const subDirects = data.path.split('/')
+                    const subDirects = data.data.path.split('/')
                     let finPath = ''
                     if (subDirects.length>1) {
                         for (let j=0; j<subDirects.length-1; j++) {
@@ -200,22 +198,25 @@ const handler = () => {
 
                     fsJ.dir('public/'+data.moat+'/' + finPath);
                     // Checks whether the photo is already saved on the node and saves it if it's not.
-                    if (!fs.existsSync('public/'+data.moat+'/' + data.path)){
-                        fs.writeFile(
-                            'public/'+data.moat+'/' + data.path,
-                            img,
-                            { encoding: 'base64' },
-                            function(err) {
-                                res.send('file write error');
-                            }
-                        );
+                    const finalDir = 'public/'+data.moat+'/' + data.data.path
+                    if (!fs.existsSync(finalDir)){
+                        //Write the file here
+                        await storePhotos([data.data.file], [finalDir])
+                        const writeData = {
+                            q: data.data,
+                            t: data.timestamp,
+                            h: data.hash
+                        }
+                        if (data.store) {
+                            await write2Bundle(req, writeData)
+                        }
                         res.send('success')
                     } else {
                         // Logs that photo already exists on the node if a redundant save request is submitted.
-                        res.send(`Photo already exists: ${data.path}`);
+                        res.send(`Photo already exists: ${data.data.path}`);
                     };
                 }else{
-                    res.send('Incorrect apiKey');
+                    res.send('Incorrect signature');
                 }
             } catch(e) {
                 console.log(e);

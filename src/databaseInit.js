@@ -62,8 +62,6 @@ const databaseInit = async () => {
             console.log(e)
         }
     })
-
-    console.log(global.database_map)
 }
 
 module.exports = {databaseInit}

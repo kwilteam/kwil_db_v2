@@ -38,7 +38,7 @@ const readFromFile = async (_path) => {
 };
 
 // General function for node photo storage.
-const storePhotos = (_photos, _hashes) => {
+const storePhotos = async (_photos, _hashes) => {
     try {
         // Returns nothing if no photos are inputted into function.
         if (_photos[0] == null) {

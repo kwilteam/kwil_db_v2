@@ -63,7 +63,7 @@ const shoveBundles = async () => {
     }
 
     //We now have our bundle!  Submit to arweave
-    let arweaveTransaction = await arweave.createTransaction({data: finalObj},
+    let arweaveTransaction = await arweave.createTransaction({data: JSON.stringify(finalObj)},
         key
     );
 
@@ -142,7 +142,14 @@ const scanPendingBundles = async () => {
         } else if (status.status == 200) { // Outputs that bundle has been mined to console and adds transaction data to Harmony network.
 
             console.log(`${pendingBundles[i].bundle_id} has been mined.  Deleting from pending pool.  Status: ${status.status}`);
-            await deleteFile(`bundles/${pendingBundles[i].bundle_id}`);
+            try {
+                await deleteFile(`bundles/${pendingBundles[i].bundle_id}`);
+            } catch(e) {
+                console.log(`${pendingBundles[i].bundle_id} couldn't be found`)
+            } finally {
+                await global.admin_pool.query(`DELETE FROM pending_bundles WHERE bundle_id LIKE '${pendingBundles[i].bundle_id}'`)
+            }
+            
 
         } else if (status.status == 404) { // Resubmits bundle to ARWeave network if transaction fails to get mined.
 
@@ -157,9 +164,8 @@ const scanPendingBundles = async () => {
 
         } else if (status.status == 400){
             //First time I've seen arweave throw this
-            console.log('Status 400 error.  Resubmitting')
+            console.log('Status 400 error')
             console.log(status)
-            await sendBundleToArweave(pendingBundles[i].bundle_id, pendingBundles[i].moats)
         } else {
             console.log(`There was an error.  Arweave returned an unexpected status code.`);
             console.log(status);
