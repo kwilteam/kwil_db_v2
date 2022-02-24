@@ -12,7 +12,7 @@ const setPartition = async (_val) => {
     const currentPartition = await getCurrentPartition()
     await global.admin_pool.query(`UPDATE bundle_partition SET current_partition = ${_val} WHERE current_partition = ${currentPartition}`)
     global.current_partition = _val
-    await admin_pool.query(`CREATE TABLE IF NOT EXISTS "bundle_${_val}"(
+    await global.admin_pool.query(`CREATE TABLE IF NOT EXISTS "bundle_${_val}"(
         id SERIAL PRIMARY KEY,
         post_data TEXT NOT NULL,
         moat_name varchar(64) NOT NULL,
@@ -59,7 +59,7 @@ const partitionInit = async () => {
         global.current_partition = currentPartition
     }
 
-    await admin_pool.query(`CREATE TABLE IF NOT EXISTS "bundle_${currentPartition}"(
+    await global.admin_pool.query(`CREATE TABLE IF NOT EXISTS "bundle_${currentPartition}"(
         id SERIAL PRIMARY KEY,
         post_data TEXT NOT NULL,
         moat_name varchar(64) NOT NULL,

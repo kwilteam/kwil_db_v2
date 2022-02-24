@@ -1,4 +1,4 @@
-const { Client, Pool } = require('pg');
+const { Pool } = require('pg');
 require(`dotenv`).config();
 
 
@@ -18,10 +18,9 @@ require(`dotenv`).config();
       user: `postgres`,
       password: `password`,}
   }
-const client = new Client(credentials);
 const pool = new Pool(credentials)
 
-pool.on('error', (err, client) => {
+pool.on('error', (err) => {
     console.error('Unexpected error on idle client', err)
     process.exit(-1)
   })

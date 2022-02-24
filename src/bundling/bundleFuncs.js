@@ -41,10 +41,6 @@ const moveFile = async (_main, _newFile, _newName = '') => {
 // Writes content in parameter (_content) to _path (file path) in Google Cloud.
 const write2File = async (_path, _content) => {
     if (process.env.NODE_ENV == 'productionG') {
-        console.log('Writing File to Google Cloud');
-        await gcloud.write2File(_content, _path);
-        console.log(`${_path} written to Google Cloud`);
-        return;
     };
     await fileWriter.write2File('./'+_path, _content);
 };

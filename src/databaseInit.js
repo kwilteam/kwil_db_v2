@@ -44,6 +44,7 @@ const databaseInit = async () => {
         encrypted_secret varchar(88) NOT NULL
     );`)
 
+    //Revoke access from public
     await admin_pool.query('REVOKE connect ON DATABASE admin FROM PUBLIC;')
 
     //Creating a map for all databases
@@ -57,7 +58,7 @@ const databaseInit = async () => {
         credentials.database = user.moat_name
         try {
             //Try/catch in case there is DB connectivity issue
-            global.database_map.set(user.moat_name, {key: user.public_key, pool: new Pool(credentials)})
+            global.database_map.set(user.moat_name, {key: user.public_key, pool: new Pool(credentials), data_size: 0})
         } catch(e) {
             console.log(e)
         }

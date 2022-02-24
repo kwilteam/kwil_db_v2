@@ -6,6 +6,7 @@ const fs = require("fs");
 const { checkQuerySig } = require('./signatures/signatures.js');
 const Registry = require('./registry/mainRegistry');
 const { storePhotos } = require('./filesystem/fileWriter.js');
+require(`dotenv`).config();
 
 const registry = Registry();
 
@@ -19,6 +20,9 @@ const handler = () => {
             */
 
             try {
+            if (!process.env.ALLOW_REGISTRATION) {
+                throw new Error(`Registration is disabled on this node`)
+            }
             let data = req.body
             //First make sure it is snake case
             data.moat = hyphenToSnake(data.moat)
@@ -174,7 +178,6 @@ const handler = () => {
 
         async storePhoto(req, res) {
             
-
             try {
                 const data = req.body;
                 data.moat = hyphenToSnake(data.moat)

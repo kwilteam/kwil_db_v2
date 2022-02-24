@@ -1,0 +1,5 @@
+#Ignore test.js
+test.js
+src/internal/checkSignature.js
+src/internal/checkSignator.js
+node_modules

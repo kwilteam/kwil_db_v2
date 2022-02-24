@@ -17,8 +17,6 @@ const partitions = require('./src/utils/bundlePartitions.js')
 const {databaseInit} = require('./src/databaseInit.js')
 
 //function shoveBundles() {}
-function syncNode() {}
-
 
 const start = async () => {
     

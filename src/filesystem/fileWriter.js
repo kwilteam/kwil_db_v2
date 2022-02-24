@@ -132,7 +132,9 @@ const moveFile = async (file, dir2, _newName = '') => {
         console.log(`Deleting file ${file}`);
         try {
             await fs.unlinkSync(file);
-        } catch(e) {};
+        } catch(e) {
+            console.log(e)
+        };
 
     });
     source.on('error', function (err) {
