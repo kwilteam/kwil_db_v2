@@ -93,20 +93,6 @@ const storePhotos = async (_photos, _hashes) => {
     };
 };
 
-
-// Writes settings to local node.
-const writeSettings = async (_settings, _settingsHash) => {
-    if (process.env.NODE_ENV == 'productionG' || process.env.IS_GOOG == true) {
-        // Stores setings parameters with Google.
-
-    } else {
-        // Creates file path where settings are stored and stores inputted settings parameters.
-        const path = `./public/settings/${hashPath(_settingsHash)}/`;
-        fsJ.dir(path);
-        await write2File(path+_settingsHash, _settings);
-    };
-};
-
 /*
     Requires fs and path modules.
 */
@@ -151,4 +137,4 @@ const writeToBundleCache = async (_data, _req) => {
 };
 
 
-module.exports = { write2File, readFromFile, moveFile, storePhotos, writeSettings, writeToBundleCache };
+module.exports = { write2File, readFromFile, moveFile, storePhotos, writeToBundleCache };
