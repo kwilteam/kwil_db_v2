@@ -102,4 +102,8 @@ app.yaml
 key.js
 cloud_config/
 finalizedBundles/
+<<<<<<< HEAD
 pendingBundles/
+=======
+pendingBundles/
+>>>>>>> c2634ed776e2403ac180eaa3e937c36b72bc83c1
