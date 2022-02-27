@@ -3,7 +3,7 @@ const { getMoatModulus, createPubJWK } = require('../utils/utils');
 
 const checkQuerySig = async (_data) => {
     /*
-    Data contains query, timestamp, hash, salt, and signature
+        Data contains query, timestamp, hash, salt, and signature
     */
    const moatModulus = await getMoatModulus(_data.moat)
    const pubKey = createPubJWK(moatModulus)
@@ -22,4 +22,4 @@ function createSignedQuery (_data) {
     }
 }
 
-module.exports = {checkQuerySig, createSignedQuery}
+module.exports = { checkQuerySig, createSignedQuery }
