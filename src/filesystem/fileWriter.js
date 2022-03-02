@@ -31,7 +31,7 @@ const write2File = async (_path, _content) => {
 const readFromFile = async (_path) => {
     // This will throw an error if path D.N.E. and returns the desired file otherwise.
     if (fs.existsSync(_path)) {
-        return fs.readFileSync(_path);
+        return fs.readFileSync(_path, {encoding:'utf8', flag:'r'});
     } else {
         throw new Error(`Path "${_path}" does not exist`);
     };

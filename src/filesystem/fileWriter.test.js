@@ -1,23 +1,33 @@
 const fileWriter = require('./fileWriter');
+const fs = require('fs');
+require(`dotenv`).config();
+const bundleFuncs = require('../bundling/bundleFuncs.js');
 
 /*
-    Notes: Check input types in functions. Write deleteFile function not for google cloud? Storephotos/writeSettings not used? WriteToBundleCache duplicated?
+    Notes: Check input types in functions. Storephotos/writeSettings not used? WriteToBundleCache duplicated? Specifying readFromFile
 */
 
-describe("write2File", () => {
-    it("Writes file data to path", async () => {
+describe("write2File & readFromFile", () => {
+    it("write2File/readFromFile writes/reads correct file data on path", async () => {
+
+        // Test File Path
+        const testPath = 'testBundles/testBundle1';
+
         // Writes file to path
-        const write2File = await fileWriter.write2File();
-
-        // Test checks for file
-
-        // Deletes file
+        await fileWriter.write2File(testPath,'asdf');
+        // Reads newly written file data
+        var fileContent = await fileWriter.readFromFile(testPath);
+         
+        // // Deletes Test File and Directory
+        // fs.unlink(testPath, function (err) {
+        //     if (err) return console.log(err);
+        // });
+        // fs.rmdir('testBundles', function (err) {
+        //     if (err) return console.log(err);
+        // });
     });
-});
-
-describe("readFromFile", () => {
-    it("Reads in correct file data", async () => {
-        // Tests return value
+    it("readFromFile throws error for nonExistent file", async () => {
+        await expect(fileWriter.readFromFile('fakeBundles')).rejects.toThrow();
     });
 });
 

@@ -42,6 +42,4 @@ const publicCopyBundle = () => {
 
 };
 
-publicCopyBundle();
-
-// module.exports = publicCopyBundle;
+module.exports = publicCopyBundle;

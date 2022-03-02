@@ -67,6 +67,4 @@ const getDbSQL = async () => {
     return(sqlString);
 };
 
-getDbSQL();
-
-// module.exports = getDbSQL;
+module.exports = { getDbSQL };
