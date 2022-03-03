@@ -2,7 +2,7 @@
     Key: '***' means to use code if test moat changed.
 */
 const { checkQuerySig, createSignedQuery } = require('./signatures');
-// Imports necessary packages for test moat change ***
+// Imports necessary packages for test moat change.
 // const rs = require('jsrsasign');
 // const jssha = require('jssha')
 // const b64 = require('base64url')
@@ -139,7 +139,7 @@ describe("checkQuerySig", () => {
 
         // Inputs invalid data and checks that return value is expected (false).
         const querySigValid = await checkQuerySig({ invalid: 'data' }, getMoatModulus);
-        await expect(querySigValid).toBeFalsy();
+        expect(querySigValid).toBeFalsy();
 
     });
 });
@@ -162,21 +162,14 @@ describe("createSignedQuery", () => {
             hash: 'testHash',
             queryID: 'testQueryID'
         };
+        console.log(createSignedQuery(testObjectExtra))
         expect(createSignedQuery(testObjectExtra)).toEqual(testObject);
 
     });
 
     it("Throws error with non-expected data object parameters", async () => {
-
-        // Sets invalid test object and check that return value throws expected error.
-        const invalidTestObject = {
-            query: 'testQuery',
-            timestamp: 'testTimestamp',
-            hash: 'testHash',
-            queryID: 'testQueryID',
-            extra1: 'testExtra1'
-        };
-        await expect(createSignedQuery(invalidTestObject)).toThrow('Parameter doesn\'t contain necessary input { data: \'value\', timestamp: \'value\', hash: \'value\', queryID: \'value\' }');
+        
+        expect(() => { createSignedQuery({ invalid: 'data' }) }).toThrow();
 
     });
 

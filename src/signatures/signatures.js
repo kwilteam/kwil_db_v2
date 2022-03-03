@@ -19,7 +19,7 @@ function createSignedQuery (_data) {
         timestamp: _data.timestamp,
         hash: _data.hash,
         queryID: _data.queryID
-    }
-}
+    };
+};
 
 module.exports = { checkQuerySig, createSignedQuery }
