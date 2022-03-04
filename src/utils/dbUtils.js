@@ -24,4 +24,14 @@ const createDatabase = async (data) => {
     global.database_map.set(data.moat, {key: data.publicKey, pool: newPool})
 }
 
-module.exports = {ifDBExists, createDatabase}
+const getMoatsOnNode = async () => {
+    let moats = await global.admin_pool.query(`SELECT DISTINCT moat_name FROM moats`)
+    moats = moats.rows
+    let retMoat = []
+    moats.forEach( moat => {
+        retMoat.push(moat.moat_name)
+    })
+    return retMoat
+}
+
+module.exports = {ifDBExists, createDatabase, getMoatsOnNode}

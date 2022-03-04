@@ -14,7 +14,8 @@ const handler = handlerFunc.handler()
 const cors = require('cors');
 let server = require('http').createServer();
 const partitions = require('./src/utils/bundlePartitions.js')
-const {databaseInit} = require('./src/databaseInit.js')
+const {databaseInit} = require('./src/databaseInit.js');
+const { initCharge } = require('./src/escrow/charge.js');
 
 //function shoveBundles() {}
 
@@ -46,6 +47,7 @@ const start = async () => {
         // Syncs data with server.
 
         await databaseInit()
+        await initCharge()
 
         //Partition
         await partitions.partitionInit()

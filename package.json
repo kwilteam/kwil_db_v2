@@ -22,9 +22,11 @@
     "graceful-fs": "^4.2.9",
     "jsrsasign": "^10.5.4",
     "jssha": "^3.2.0",
+    "kwildb": "^1.2.18",
     "node-cron": "^3.0.0",
     "pg": "^8.7.3",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "web3": "^1.7.1"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
