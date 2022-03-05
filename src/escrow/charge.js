@@ -54,7 +54,6 @@ const updateMoatCharges = async () => {
     }
     //Now lets loop through and store the new charge data in a map
     const allMoats = await getMoatsOnNode()
-    console.log(allMoats)
     for (let i = 0; i< allMoats.length; i++) {
         const amt = await getMoatAmtFromDatabase(allMoats[i])
         global.Moat_Charges.set(allMoats[i], amt)
