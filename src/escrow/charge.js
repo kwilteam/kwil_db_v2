@@ -73,7 +73,7 @@ const getMoatAmtFromDatabase = async (_moat) => {
 const ifMoatHasEnoughFunding = async (_moat, _incomingData) => {
     const dataAmt = Match.ceil(JSON.stringify(_incomingData).length * process.env.UPCHARGE_RATE)
     const currentDebit = global.Moat_Charges.get(_moat)
-    const currentFunding = 0
+    const currentFunding = global.accumulationMap.get(_moat)
     if (dataAmt+currentDebit < currentFunding) {
         return true
     } else {
