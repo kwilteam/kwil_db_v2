@@ -2,6 +2,7 @@ const Web3 = require("web3");
 const abi = require("../../abi.json");
 const dbUtils = require("../utils/dbUtils");
 const kwildb = require("kwildb");
+const tokens = require("../escrow/tokens.json");
 
 
 const initPools = async () =>{
@@ -37,17 +38,18 @@ const initPools = async () =>{
                 console.log(event.returnValues);
                 for (let [key, value] of global.moatPoolMap) {
                     console.log(key + " = " + value);
+                    const divAmt = 10 ** 6;
                     if (value.has(event.returnValues.poolName)){
-                        if (value.get(event.returnValues.poolName)<event.returnValues.totalFunds) {
+                        if (value.get(event.returnValues.poolName)<event.returnValues.totalFunds/divAmt) {
                             const num = global.accumulationMap.get(key);
-                            global.accumulationMap.set(key, num + +event.returnValues.fundsAdded)
+                            global.accumulationMap.set(key, num + (+event.returnValues.fundsAdded/divAmt))
                             console.log(global.accumulationMap);
                             return;
                         }
                         else{
                             return;
                         }
-                        //PUT IN MAP INSTEAD OF SET done
+                        //PUT IN MAP INSTEAD OF SET
                     }
                 }
             }catch(e){
@@ -62,10 +64,11 @@ const initPools = async () =>{
                 console.log(event.returnValues);
                 for (let [key, value] of global.moatPoolMap) {
                     console.log(key + " = " + value);
+                    const divAmt = 10 ** 6;
                     if (value.has(event.returnValues.poolName)){
-                        if (value.get(event.returnValues.poolName)<event.returnValues.totalFunds) {
+                        if (value.get(event.returnValues.poolName)<event.returnValues.totalFunds/divAmt) {
                             const num = global.accumulationMap.get(key);
-                            global.accumulationMap.set(key, num + +event.returnValues.fundsAdded)
+                            global.accumulationMap.set(key, num + (+event.returnValues.fundsAdded/divAmt))
                             console.log(global.accumulationMap);
                             return;
                         }
@@ -87,10 +90,11 @@ const initPools = async () =>{
                 console.log(event.returnValues);
                 for (let [key, value] of global.moatPoolMap) {
                     console.log(key + " = " + value);
+                    const divAmt = 10 ** 18;
                     if (value.has(event.returnValues.poolName)){
-                        if (value.get(event.returnValues.poolName)<event.returnValues.totalFunds) {
+                        if (value.get(event.returnValues.poolName)<event.returnValues.totalFunds/divAmt) {
                             const num = global.accumulationMap.get(key);
-                            global.accumulationMap.set(key, num + +event.returnValues.fundsAdded)
+                            global.accumulationMap.set(key, num + (+event.returnValues.fundsAdded/divAmt))
                             console.log(global.accumulationMap);
                             return;
                         }
@@ -123,9 +127,11 @@ const initPools = async () =>{
             //accumulationMap.get('testingnewprimkey'/*arr[i]*/).set(pools[i].)
             global.moatPoolMap.get(arr[i]).set(pools[j].id.split("_")[0],);
             const poolFromChain = await kwildb.pools.getPool(pools[j].pool_name,pools[j].blockchain,pools[j].token);
-            global.moatPoolMap.get(arr[i]).set(pools[j].id.split("_")[0],+poolFromChain.pool);
+            const divAmt = 10 ** tokens[pools[j].token].decimals
+            const finalTokenAmt = poolFromChain.pool/divAmt
+            global.moatPoolMap.get(arr[i]).set(pools[j].id.split("_")[0],+finalTokenAmt);
             console.log(poolFromChain)
-            accumulator += +poolFromChain.pool;
+            accumulator += +finalTokenAmt;
         }
         global.accumulationMap.set(arr[i],accumulator);
         console.log(global.accumulationMap);
