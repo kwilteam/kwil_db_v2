@@ -58,8 +58,9 @@ const updateMoatCharges = async () => {
         const amt = await getMoatAmtFromDatabase(allMoats[i])
         global.Moat_Charges.set(allMoats[i], amt)
     }
-    console.log(`Current debits:`)
+    console.log(`\nCurrent debits:`)
     console.log(global.Moat_Charges)
+    console.log(`\n`)
 }
 
 const getMoatAmtFromDatabase = async (_moat) => {
@@ -69,4 +70,15 @@ const getMoatAmtFromDatabase = async (_moat) => {
     return amt[0].total_charges
 }
 
-module.exports = {chargeQuery, initCharge, updateMoatCharges}
+const ifMoatHasEnoughFunding = async (_moat, _incomingData) => {
+    const dataAmt = Match.ceil(JSON.stringify(_incomingData).length * process.env.UPCHARGE_RATE)
+    const currentDebit = global.Moat_Charges.get(_moat)
+    const currentFunding = 0
+    if (dataAmt+currentDebit < currentFunding) {
+        return true
+    } else {
+        return false
+    }
+}
+
+module.exports = {chargeQuery, initCharge, updateMoatCharges, ifMoatHasEnoughFunding}
