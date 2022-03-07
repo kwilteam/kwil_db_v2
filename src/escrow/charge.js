@@ -70,11 +70,22 @@ const getMoatAmtFromDatabase = async (_moat) => {
     return amt[0].total_charges
 }
 
+const fundingAmtToData = async (_amt) => {
+    //Must convert the amount of funding to how much data this affords a user.  Input is in dollars
+    //Will assume $/gb on Arweave is $8.5
+
+    const arweavePricePerGB = 8.5 //This can be made to update dynamically in the future
+    const dataBought = _amt/arweavePricePerGB * (10**9) / process.env.UPCHARGE_RATE
+
+    return dataBought
+}
+
 const ifMoatHasEnoughFunding = async (_moat, _incomingData) => {
-    const dataAmt = Match.ceil(JSON.stringify(_incomingData).length * process.env.UPCHARGE_RATE)
+    const dataAmt = Math.ceil(JSON.stringify(_incomingData).length * process.env.UPCHARGE_RATE)
     const currentDebit = global.Moat_Charges.get(_moat)
     const currentFunding = global.accumulationMap.get(_moat)
-    if (dataAmt+currentDebit < currentFunding) {
+    const dataAmtPaidFor = await fundingAmtToData(currentFunding)
+    if (dataAmt+currentDebit < dataAmtPaidFor) {
         return true
     } else {
         return false
