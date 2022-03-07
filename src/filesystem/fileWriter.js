@@ -1,6 +1,5 @@
 const fsG = require('graceful-fs');
 const fs = require('fs');
-const { hashPath } = require('../utils/utils.js');
 const fsJ = require('fs-jetpack');
 const path = require('path');
 require(`dotenv`).config();

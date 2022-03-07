@@ -6,6 +6,7 @@ const fs = require("fs");
 const { checkQuerySig } = require('./signatures/signatures.js');
 const Registry = require('./registry/mainRegistry');
 const { storePhotos } = require('./filesystem/fileWriter.js');
+const { ifMoatHasEnoughFunding } = require('./escrow/charge.js');
 require(`dotenv`).config();
 
 const registry = Registry();
@@ -67,6 +68,12 @@ const handler = () => {
             try {
                 let data = req.body
 
+                const writeData = { //Declaring here because we must check if this data is paid for by pool
+                    q: data.data,
+                    t: data.timestamp,
+                    h: data.hash
+                }
+
                 data.moat = hyphenToSnake(data.moat)
                 let senderValidity = false
                 try {
@@ -80,22 +87,20 @@ const handler = () => {
 
                 try {
                     //Do the business logic here
-                    const dbPool = global.database_map.get(data.moat)
-                    const queryResult = await dbPool.pool.query(data.data)
+                    if (await ifMoatHasEnoughFunding(data.moat, writeData)) {
+                        const dbPool = global.database_map.get(data.moat)
+                        const queryResult = await dbPool.pool.query(data.data)
 
-                    if (data.store) {
-                        //Write to bundle cache
+                        if (data.store) {
+                            //Write to bundle cache
 
-                        const writeData = {
-                            q: data.data,
-                            t: data.timestamp,
-                            h: data.hash
+                            await write2Bundle(req, writeData)
                         }
-                        await write2Bundle(req, writeData)
+
+                        res.send(queryResult)
+                    } else {
+                        res.send(`Not enough funds in pool to execute this operation`)
                     }
-
-                    res.send(queryResult)
-
                 } catch(e) {
                     console.log(e)
                     await res.status(400).send(e.toString())
@@ -124,10 +129,16 @@ const handler = () => {
                     return;
                 }
 
+                const writeData = {
+                    q: data.data,
+                    t: data.timestamp,
+                    h: data.hash
+                }
+
                 data.moat = hyphenToSnake(data.moat)
 
                 const validSig = await checkQuerySig(data)
-                if (validSig) {
+                if (validSig && await ifMoatHasEnoughFunding(data.moat, writeData)) {
 
                     const subDirects = data.data.path.split('/')
                     let finPath = ''
@@ -149,11 +160,6 @@ const handler = () => {
                                 console.log(err);
                             }
                         );
-                        const writeData = {
-                            q: data.data,
-                            t: data.timestamp,
-                            h: data.hash
-                        }
 
                         if (data.store) {
                             await write2Bundle(req, writeData)
@@ -165,7 +171,7 @@ const handler = () => {
                         res.send(`Photo already exists: ${data.path}`);
                     };
                 }else{
-                    res.send('Incorrect signature');
+                    res.send('Incorrect signature, or your moat does not have enough funds to execute this operation');
                 }
             } catch(e) {
                 console.log(e);
@@ -186,8 +192,14 @@ const handler = () => {
                     return;
                 }
 
+                const writeData = {
+                    q: data.data,
+                    t: data.timestamp,
+                    h: data.hash
+                }
+
                 const validSig = await checkQuerySig(data)
-                if (validSig) {
+                if (validSig && await ifMoatHasEnoughFunding(data.moat, writeData)) {
 
                     const subDirects = data.data.path.split('/')
                     let finPath = ''
@@ -205,11 +217,7 @@ const handler = () => {
                     if (!fs.existsSync(finalDir)){
                         //Write the file here
                         await storePhotos([data.data.file], [finalDir])
-                        const writeData = {
-                            q: data.data,
-                            t: data.timestamp,
-                            h: data.hash
-                        }
+
                         if (data.store) {
                             await write2Bundle(req, writeData)
                         }
@@ -219,7 +227,7 @@ const handler = () => {
                         res.send(`Photo already exists: ${data.data.path}`);
                     };
                 }else{
-                    res.send('Incorrect signature');
+                    res.send('Incorrect signature, or you do not have enough funds to execute this operation');
                 }
             } catch(e) {
                 console.log(e);
@@ -233,30 +241,31 @@ const handler = () => {
             try {
                 const data = req.body
                 data.moat = hyphenToSnake(data.moat)
+                const writeData = {
+                    q: data.data,
+                    t: data.timestamp,
+                    h: data.hash
+                }
 
                 //Check signature
                 if (await checkQuerySig(data)) {
                     //Execute prepared statement
-                    const dbPool = global.database_map.get(data.moat)
 
-                    //Change this part with prepared statement
-                    const queryResult = await dbPool.pool.query(data.data.query, data.data.inputs)
+                    if (await ifMoatHasEnoughFunding(data.moat, writeData)) {
+                        const dbPool = global.database_map.get(data.moat)
 
-                    if (data.store) {
-                        //Write to bundle cache
+                        //Change this part with prepared statement
+                        const queryResult = await dbPool.pool.query(data.data.query, data.data.inputs)
 
-                        const writeData = {
-                            q: data.data,
-                            t: data.timestamp,
-                            h: data.hash
+                        if (data.store) {
+                            //Write to bundle cache
+                            await write2Bundle(req, writeData)
                         }
-                        await write2Bundle(req, writeData)
+                        
+                    res.send(queryResult)
                     }
 
-                    res.send(queryResult)
-
                 }
-
 
             } catch(e) {
                 console.log(e)

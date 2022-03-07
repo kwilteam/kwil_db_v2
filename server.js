@@ -15,7 +15,8 @@ const cors = require('cors');
 let server = require('http').createServer();
 const partitions = require('./src/utils/bundlePartitions.js')
 const {databaseInit} = require('./src/databaseInit.js');
-const { initCharge } = require('./src/escrow/charge.js');
+const { initCharge, updateMoatCharges } = require('./src/escrow/charge.js');
+const {initPools} = require("./src/poolRegistry/pools");
 
 //function shoveBundles() {}
 
@@ -48,6 +49,7 @@ const start = async () => {
 
         await databaseInit()
         await initCharge()
+        await initPools();
 
         //Partition
         await partitions.partitionInit()
@@ -56,6 +58,7 @@ const start = async () => {
             cron.schedule('0 0 0 * * *', async function () {
                 //await syncNode();
                 console.log(`Node Synced`.green);
+                await updateMoatCharges()
                 await shove();
             })
             } catch(e) {
