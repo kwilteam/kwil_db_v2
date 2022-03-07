@@ -5,7 +5,6 @@ const path = require('path');
 require(`dotenv`).config();
 const {v4} = require('uuid');
 
-
 // Writes file content to desired file path parameter.
 const write2File = async (_path, _content) => {
     //Will first split by forward slash.  Then use all but last in fsJ.dir
@@ -17,8 +16,6 @@ const write2File = async (_path, _content) => {
         }
         fsJ.dir(subPath)
     }
-
-
     // Feeds in content as a buffer from a stringified JSON.
     let fileStream = fsG.createWriteStream(`${_path}`, { flags: 'w' });
     fileStream.write(_content);
@@ -43,8 +40,6 @@ const storePhotos = async (_photos, _hashes) => {
         if (_photos[0] == null) {
             return;
         };
-
-
         // Managaes local node photo storage.
         if (_photos.length != _hashes.length) {
             // Throws error if photo and hash arrays don't correspond length-wise.
