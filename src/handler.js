@@ -79,9 +79,11 @@ const handler = () => {
                 try {
                     senderValidity = await checkQuerySig(data)
                 } catch(e) {
+                    console.log(e)
+                    console.log(`Tried to access moat not being served: ${data.moat}`)
                     res.send('If this database exists, it is not being validated by this node.')
                 }
-
+                console.log(senderValidity)
             if (senderValidity) {
                 //Credentials are valid, contains the hash
 
@@ -116,7 +118,12 @@ const handler = () => {
             res.end()
         } catch(e) {
             console.log(e)
-            res.end(`There was a database error`)
+            try {
+                res.end(`There was a database error`)
+            } catch(e) {
+                console.log(e)
+            }
+            
         }
         }
 
@@ -261,7 +268,7 @@ const handler = () => {
                             //Write to bundle cache
                             await write2Bundle(req, writeData)
                         }
-                        
+
                     res.send(queryResult)
                     }
 
