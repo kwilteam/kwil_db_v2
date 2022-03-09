@@ -44,6 +44,7 @@ const start = async () => {
         app.post('/storeFile', handler.storeFile)
         app.post('/getMoats', handler.getMoats)
         app.post('/preparedStatement', handler.preparedStatement)
+        app.post('/getMoatDebit',handler.getMoatDebit)
 
         // Syncs data with server.
 

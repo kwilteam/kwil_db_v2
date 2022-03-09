@@ -292,6 +292,21 @@ const handler = () => {
                 res.end();
             }
         }
+
+        async getMoatDebit(req, res){
+            try {
+                const moatName = req.body.moat;
+                if (global.accumulationMap.has(moatName)){
+                    res.send({funding: global.accumulationMap.get(moatName)})
+                }
+                else{
+                    res.send({funding: null})
+                }
+            }
+            catch (e) {
+                res.end();
+            }
+        }
     }
 
     return new Handler()
