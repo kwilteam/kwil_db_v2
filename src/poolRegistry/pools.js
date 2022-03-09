@@ -86,6 +86,22 @@ const initSockets = async (_RPC,_contractAddress,_token) =>{
         })
         .on('error', console.error);
 
+    contract.events.PoolCreated({})
+        .on('data', async function(event){
+            try {
+                console.log(event.returnValues);
+                const moatName = event.returnValues.moatName;
+                const poolName = event.returnValues.poolName;
+                if (global.moatPoolMap.has(moatName)){
+                    global.moatPoolMap.get(moatName).set(poolName,0);
+                }
+                console.log(global.moatPoolMap)
+            }catch(e){
+                console.log(e)
+            }
+        })
+        .on('error', console.error);
+
 }
 
 module.exports = {initPools}

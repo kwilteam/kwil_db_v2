@@ -4,6 +4,7 @@ require(`dotenv`).config();
 
 const chargeQuery = async (_req, _writeData) => {
     const dataAmt = Math.ceil(JSON.stringify(_writeData).length * process.env.UPCHARGE_RATE)
+    global.Moat_Charges.set(_req.body.moat, dataAmt)
     await global.admin_pool.query(`INSERT INTO charged_queries (query_id, data_size, data_moat) VALUES ($1, $2, $3)`, [_writeData.h, dataAmt, _req.body.moat])
 }
 
@@ -84,6 +85,7 @@ const ifMoatHasEnoughFunding = async (_moat, _incomingData) => {
     const dataAmt = Math.ceil(JSON.stringify(_incomingData).length * process.env.UPCHARGE_RATE)
     const currentDebit = global.Moat_Charges.get(_moat)
     const currentFunding = global.accumulationMap.get(_moat)
+    console.log(currentFunding);
     const dataAmtPaidFor = await fundingAmtToData(currentFunding)
     if (dataAmt+currentDebit < dataAmtPaidFor) {
         return true

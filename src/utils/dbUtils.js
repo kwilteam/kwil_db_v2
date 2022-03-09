@@ -22,6 +22,11 @@ const createDatabase = async (data) => {
     _credentials.user = data.moat
     const newPool = new Pool(_credentials)
     global.database_map.set(data.moat, {key: data.publicKey, pool: newPool})
+    global.Moat_Charges.set(data.moat, 0)
+    global.accumulationMap.set(data.moat, 0);
+    global.moatPoolMap.set(data.moat, new Map())
+    console.log(global.accumulationMap);
+    console.log(global.moatPoolMap);
 }
 
 const getMoatsOnNode = async () => {

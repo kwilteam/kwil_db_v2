@@ -92,7 +92,8 @@ const handler = () => {
                     if (await ifMoatHasEnoughFunding(data.moat, writeData)) {
                         const dbPool = global.database_map.get(data.moat)
                         const queryResult = await dbPool.pool.query(data.data)
-
+                        console.log('dataStore:')
+                        console.log(data.store)
                         if (data.store) {
                             //Write to bundle cache
 
@@ -266,6 +267,7 @@ const handler = () => {
 
                         if (data.store) {
                             //Write to bundle cache
+                            console.log('fuk u')
                             await write2Bundle(req, writeData)
                         }
 

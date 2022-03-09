@@ -55,7 +55,6 @@ const sha384 = (_text) => {
 const getMoatModulus = async (_moat) => {
     //This doesn't have to be async if it is getting data from the database_map and not database
     const moatData = global.database_map.get(_moat)
-    console.log(global.database_map)
     return moatData.key
     //Below is code for how to do this from the database
 
