@@ -3,9 +3,11 @@ const { getMoatsOnNode } = require("../utils/dbUtils");
 require(`dotenv`).config();
 
 const chargeQuery = async (_req, _writeData) => {
+    const moat = _req.body.moat
     const dataAmt = Math.ceil(JSON.stringify(_writeData).length * process.env.UPCHARGE_RATE)
-    global.Moat_Charges.set(_req.body.moat, dataAmt)
-    await global.admin_pool.query(`INSERT INTO charged_queries (query_id, data_size, data_moat) VALUES ($1, $2, $3)`, [_writeData.h, dataAmt, _req.body.moat])
+    const currentAmt = global.Moat_Charges.get(moat)
+    global.Moat_Charges.set(moat, currentAmt + dataAmt)
+    await global.admin_pool.query(`INSERT INTO charged_queries (query_id, data_size, data_moat) VALUES ($1, $2, $3)`, [_writeData.h, dataAmt, moat])
 }
 
 const initCharge = async () => {
