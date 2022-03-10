@@ -18,12 +18,15 @@ const initPools = async () =>{
         global.moatPoolMap = new Map();
         //console.log(accumulationMap)
         //CHANGE FOR LOOP
+        let counter =0;
         for (let i = 0; i < arr.length; i++) {
             global.moatPoolMap.set(arr[i], new Map());
             global.accumulationMap.set(arr[i], 0)
             const pools = await kwildb.getPoolsByMoat('https://registry.kwil.xyz', arr[i])
             //console.log(pools)
             let accumulator = 0;
+            counter++;
+            console.log("Retrieving Pools for Moat "+ counter +"/"+arr.length+"...")
             for (let j = 0; j < pools.length; j++) {
                 //accumulationMap.get('testingnewprimkey'/*arr[i]*/).set(pools[i].)
                 global.moatPoolMap.get(arr[i]).set(pools[j].id.split("_")[0],);
@@ -35,9 +38,9 @@ const initPools = async () =>{
                 accumulator += +finalTokenAmt;
             }
             global.accumulationMap.set(arr[i], accumulator);
-            console.log(global.accumulationMap);
+            //console.log(global.accumulationMap);
         }
-        console.log(global.moatPoolMap);
+        //console.log(global.moatPoolMap);
     }catch(e){
         console.log(e)
     }
