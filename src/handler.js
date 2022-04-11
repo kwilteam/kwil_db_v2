@@ -267,7 +267,7 @@ const handler = () => {
 
                         if (data.store) {
                             //Write to bundle cache
-                            console.log('fuk u')
+                            //console.log('fuk u')
                             await write2Bundle(req, writeData)
                         }
 
@@ -287,6 +287,36 @@ const handler = () => {
             try {
                 const data = req.body;
                 res.send(await registry.getMoats(data.owner));
+            }
+            catch (e) {
+                res.end();
+            }
+        }
+
+        async getMoatFunding(req, res){
+            try {
+                const moatName = req.body.moat;
+                if (global.accumulationMap.has(moatName)){
+                    res.send({funding: global.accumulationMap.get(moatName)})
+                }
+                else{
+                    res.send({funding: null})
+                }
+            }
+            catch (e) {
+                res.end();
+            }
+        }
+
+        async getMoatDebit(req, res){
+            try {
+                const moatName = req.body.moat;
+                if (global.Moat_Charges.has(moatName)){
+                    res.send({debit: global.Moat_Charges.get(moatName)})
+                }
+                else{
+                    res.send({debit: null})
+                }
             }
             catch (e) {
                 res.end();
