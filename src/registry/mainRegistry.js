@@ -4,7 +4,7 @@ const createConnectorRegistry = () => {
     //const secret = _secret.slice()
     //const params = createRegistry(_credentials)
     const params = {
-        url: 'http://registry.kwil.xyz:1984',
+        url: 'https://registry.kwil.xyz',
         method: 'post',
         timeout: 20000,
         data: {

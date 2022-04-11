@@ -17,6 +17,12 @@ require(`dotenv`).config();
       database: `postgres`,
       user: `postgres`,
       password: `password`,}
+  } else if (process.env.NODE_ENV == 'docker') {
+    credentials = {host: 'postgres',
+      port: process.env.DATABASE_PORT,
+      database: process.env.DATABASE_NAME,
+      user: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,}
   }
 const pool = new Pool(credentials)
 

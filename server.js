@@ -14,14 +14,13 @@ const handler = handlerFunc.handler()
 const cors = require('cors');
 let server = require('http').createServer();
 const partitions = require('./src/utils/bundlePartitions.js')
-const {databaseInit} = require('./src/databaseInit.js');
+const {databaseInit} = require('./src/inits/databaseInit.js');
 const { initCharge, updateMoatCharges } = require('./src/escrow/charge.js');
 const {initPools} = require("./src/poolRegistry/pools");
-
-//function shoveBundles() {}
+const { initMissingFiles } = require('./src/inits/ignoredFilesInit.js');
 
 const start = async () => {
-    
+    await initMissingFiles()
     if (cluster.isMaster) {
 
         // Starts up the database and logs startup to console
@@ -49,7 +48,7 @@ const start = async () => {
 
         await databaseInit()
         await initCharge()
-        await initPools();
+        await initPools()
 
         //Partition
         await partitions.partitionInit()

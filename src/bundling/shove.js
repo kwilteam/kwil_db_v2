@@ -15,7 +15,14 @@ This will then be submitted to Arweave and written to the file system at the loc
 This will also be added to a pending_bundles database, which will contain rows tracking Arweave TXID and an array of all moats contained in that bundle.
 */
 require(`dotenv`).config();
-const {key} = require('../../key.js')
+const fs = require('fs')
+let key
+try {
+    key = fs.readFileSync('./key.json')
+    key = JSON.parse(key.toString())
+} catch(e) {
+    console.log(`No Arweave JWK detected`)
+}
 const Arweave = require('arweave')
 const arweave = Arweave.init({
     host: 'arweave.net',

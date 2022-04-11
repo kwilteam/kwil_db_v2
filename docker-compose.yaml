@@ -1,18 +1,26 @@
-version: "3.7"
+version: "3.3"
 services: 
-  db: 
-    image: "postgres"
-    environment: 
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_DB: admin
+  postgres: 
+    image: postgres
+    restart: always
+    env_file: .env
     volumes: 
       - ./pgdata:/var/lib/postgresql/data
-    ports: 
-      - "5432:5432"
+    ports:
+      - 5432:5432
+    networks:
+      - default
   web: 
-    image: kwildb
-    depends-on: 
-      - db
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    volumes:
+      - /usr/src/app
+    networks:
+      - default
+    depends_on: 
+      - postgres
     ports: 
       - "1984:1984"
+    restart: always
+    ##command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; npm start'

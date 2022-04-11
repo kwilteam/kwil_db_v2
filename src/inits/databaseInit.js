@@ -1,5 +1,5 @@
-const partitions = require('./utils/bundlePartitions.js')
-const {pool, Pool, credentials} = require('../database/pool.js')
+const partitions = require('../utils/bundlePartitions.js')
+const {pool, Pool, credentials} = require('../../database/pool.js')
 
 const databaseInit = async () => {
     try {
@@ -15,8 +15,9 @@ const databaseInit = async () => {
 
     //Set admin pool
     global.admin_pool = admin_pool
-
     //Create a bundle table
+    console.log(1)
+
     await admin_pool.query(`CREATE TABLE IF NOT EXISTS bundles(
         bundle_id varchar(43) PRIMARY KEY,
         height integer NOT NULL,
@@ -35,7 +36,7 @@ const databaseInit = async () => {
     await partitions.partitionInit()
 
     //Create moats table
-
+            console.log(1)
     await admin_pool.query(`CREATE TABLE IF NOT EXISTS moats(
         moat_name varchar(128) PRIMARY KEY,
         owner_address varchar(42) NOT NULL,

@@ -99,6 +99,7 @@ public/
 .env
 app.yaml
 key.js
+key.json
 cloud_config/
 finalizedBundles/
 pendingBundles/
